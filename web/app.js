@@ -13,6 +13,7 @@ const ROUTES = [
   [/^\/traitements$/, "processing", "processing", ["admin", "auditeur"]],
   [/^\/personnes$/, "people", "people", ["admin", "auditeur"]],
   [/^\/appareils$/, "devices", "devices", ["admin", "auditeur"]],
+  [/^\/integrations$/, "integrations", "integrations", ["admin", "auditeur"]],
   [/^\/rapports$/, "reports", "reports", ["admin", "auditeur"]],
   [/^\/parametres$/, "settings", "settings", ["admin"]],
   [/^\/mon-espace$/, "me", "me", ["admin", "auditeur", "membre"]],
@@ -22,7 +23,7 @@ const NAV = [
   ["Conformité", [["frameworks", "#/referentiels", "Référentiels", "shield"], ["controls", "#/mesures", "Mesures", "list"], ["tests", "#/tests", "Tests automatisés", "pulse"], ["policies", "#/politiques", "Politiques", "doc"]]],
   ["Risques et tiers", [["risks", "#/risques", "Risques", "risk"], ["vendors", "#/fournisseurs", "Fournisseurs", "vendor"]]],
   ["Données personnelles", [["processing", "#/traitements", "Registre 09-08", "data"]]],
-  ["Organisation", [["people", "#/personnes", "Personnes", "people"], ["devices", "#/appareils", "Appareils", "laptop"]]],
+  ["Organisation", [["people", "#/personnes", "Personnes", "people"], ["devices", "#/appareils", "Appareils", "laptop"], ["integrations", "#/integrations", "Intégrations", "cloud"]]],
   [null, [["reports", "#/rapports", "Rapports", "report"], ["settings", "#/parametres", "Paramètres", "settings"]]],
 ];
 const ROLE = { admin: "Administrateur", membre: "Collaborateur", auditeur: "Auditeur" };

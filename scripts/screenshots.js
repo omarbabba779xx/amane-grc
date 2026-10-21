@@ -10,6 +10,7 @@ const OUT = path.join(__dirname, "..", "docs");
 const CHROME = process.env.CHROME_PATH || ["C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"].find(fs.existsSync);
 const creds = fs.readFileSync(path.join(__dirname, "..", "demo-data", "IDENTIFIANTS-DEMO.txt"), "utf8");
 const password = creds.match(/\(tous les comptes\) : (\S+)/)[1];
+const ONLY = process.env.AMANE_SHOTS?.split(","); // e.g. AMANE_SHOTS=tests,integrations
 fs.mkdirSync(OUT, { recursive: true });
 
 const SHOTS = [
@@ -23,6 +24,7 @@ const SHOTS = [
     ["registre-0908", "#/traitements"],
     ["appareils", "#/appareils"],
     ["personnes", "#/personnes"],
+    ["integrations", "#/integrations"],
   ]],
   ["k.tazi@atlas-demo.test", [["mon-espace", "#/mon-espace"]]],
 ];
@@ -37,6 +39,7 @@ const SHOTS = [
     await page.type("input[name=password]", password);
     await Promise.all([page.waitForNavigation({ waitUntil: "networkidle0" }), page.click("form button")]);
     for (const [name, hash, opt = {}] of pages) {
+      if (ONLY && !ONLY.includes(name)) continue;
       await page.goto(`${BASE}/${hash}`, { waitUntil: "networkidle0" });
       await page.reload({ waitUntil: "networkidle0" });
       await page.waitForSelector(opt.wait || ".head h1");

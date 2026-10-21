@@ -80,10 +80,29 @@ const PLATFORM = {
   },
 };
 
+// Microsoft 365 tests read the last synchronisation; without the integration they stay pending.
+function m365Test(code) {
+  const integ = get("SELECT status, details, last_sync FROM integrations WHERE provider = 'm365'");
+  if (!integ) return { status: "en_attente", details: { message: "Intégration Microsoft 365 non configurée (Organisation › Intégrations)." } };
+  if (integ.status !== "ok") return { status: "en_attente", details: { message: "Synchronisation Microsoft 365 en erreur ou non lancée." } };
+  if (ago(integ.last_sync, 2)) return { status: "en_attente", details: { message: "Dernière synchronisation Microsoft 365 de plus de 48 heures." } };
+  const users = all("SELECT name, upn, mfa_registered, is_admin FROM m365_users WHERE enabled = 1");
+  if (code === "T-M365-ENFORCE") {
+    const e = JSON.parse(integ.details || "{}").enforcement || {};
+    const ca = (e.conditionalAccess || []).find((p) => p.allUsers);
+    if (e.securityDefaults) return { status: "ok", details: { message: "Paramètres de sécurité par défaut activés." } };
+    if (ca) return { status: "ok", details: { message: `Accès conditionnel « ${ca.name} »${ca.excluded ? ` (${ca.excluded} exclusion(s) à justifier)` : ""}.` } };
+    return { status: "echec", details: { message: "Ni les paramètres de sécurité par défaut, ni une stratégie d'accès conditionnel n'imposent la MFA à tous." } };
+  }
+  const scope = code === "T-M365-ADMIN-MFA" ? users.filter((u) => u.is_admin) : users;
+  const failing = scope.filter((u) => !u.mfa_registered).map((u) => ({ name: u.name, info: u.upn }));
+  return { status: failing.length ? "echec" : "ok", details: { total: scope.length, failing } };
+}
+
 function runTests() {
   const at = now();
   for (const t of all("SELECT code, source FROM tests")) {
-    const r = t.source === "agent" ? agentTest(t.code) : (PLATFORM[t.code] || (() => ({ status: "en_attente", details: {} })))();
+    const r = t.source === "agent" ? agentTest(t.code) : t.source === "m365" ? m365Test(t.code) : (PLATFORM[t.code] || (() => ({ status: "en_attente", details: {} })))();
     run("UPDATE tests SET status = ?, details = ?, last_run = ? WHERE code = ?", r.status, JSON.stringify(r.details), at, t.code);
   }
 }

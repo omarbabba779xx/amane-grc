@@ -16,14 +16,15 @@ export async function render(main, ctx) {
       <div class="card stat"><div class="k">Intégration complète</div><div class="v" style="color:${complete === staff.length ? "var(--ok)" : "var(--warn)"}">${complete}</div><div class="s">politiques, formation et agent</div></div>
       <div class="card stat"><div class="k">Formation à jour</div><div class="v">${staff.filter((u) => !old(u.training_at)).length}</div><div class="s">moins de 12 mois</div></div>
       <div class="card stat"><div class="k">Avec un poste équipé</div><div class="v">${staff.filter((u) => u.devices.length).length}</div></div></div>
-    <div class="card"><div class="table-wrap"><table class="t"><thead><tr><th>Personne</th><th>Rôle</th><th>Politiques</th><th>Formation</th><th>Appareils</th><th>Statut</th></tr></thead><tbody id="rows">
+    <div class="card"><div class="table-wrap"><table class="t"><thead><tr><th>Personne</th><th>Rôle</th><th>Politiques</th><th>Formation</th><th>Appareils</th><th>MFA</th><th>Statut</th></tr></thead><tbody id="rows">
     ${users.map((u) => `<tr class="click" data-id="${u.id}">
       <td class="title"><b>${esc(u.name)}</b><span class="small muted">${esc(u.email)}${u.department ? ` · ${esc(u.department)}` : ""}</span></td>
       <td class="small">${esc(ROLES.find((r) => r[0] === u.role)?.[1])}</td>
       <td>${u.role === "auditeur" ? '<span class="muted small">—</span>' : `<span class="pill ${u.policies_accepted === u.policies_total && u.policies_total ? "ok" : "warn"}">${u.policies_accepted} / ${u.policies_total}</span>`}</td>
       <td>${u.role === "auditeur" ? '<span class="muted small">—</span>' : old(u.training_at) ? `<span class="pill bad">${u.training_at ? "À renouveler" : "Non formé"}</span>` : `<span class="pill ok">${date(u.training_at)}</span>`}</td>
       <td class="small">${u.devices.length ? u.devices.map((d) => `${esc(d.hostname)} <span class="muted">${ago(d.last_seen)}</span>`).join("<br>") : '<span class="muted">aucun</span>'}</td>
-      <td>${u.active ? '<span class="pill ok">Actif</span>' : '<span class="pill">Désactivé</span>'}</td></tr>`).join("") || `<tr><td colspan="6">${empty("people", "Personne", "")}</td></tr>`}
+      <td>${!u.m365 ? '<span class="muted small">—</span>' : u.m365.mfa_registered ? '<span class="pill ok">Oui</span>' : `<span class="pill bad">Non${u.m365.is_admin ? " · admin" : ""}</span>`}</td>
+      <td>${u.active ? '<span class="pill ok">Actif</span>' : '<span class="pill">Désactivé</span>'}</td></tr>`).join("") || `<tr><td colspan="7">${empty("people", "Personne", "")}</td></tr>`}
     </tbody></table></div></div>`;
   if (!admin) return;
 

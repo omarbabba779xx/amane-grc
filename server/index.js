@@ -315,6 +315,7 @@ app.get("/api/users", reader, (req, res) => {
     policies_accepted: pols.filter((p) => get("SELECT 1 FROM policy_acceptances WHERE policy_id = ? AND version = ? AND user_id = ?", p.id, p.version, u.id)).length,
     policies_total: pols.length,
     devices: all("SELECT hostname, last_seen FROM devices WHERE user_id = ?", u.id),
+    m365: get("SELECT mfa_registered, is_admin, methods FROM m365_users WHERE email = ? OR lower(upn) = ?", u.email.toLowerCase(), u.email.toLowerCase()) || null,
   })));
 });
 app.post("/api/users", admin, (req, res) => {
@@ -390,6 +391,30 @@ app.post("/api/agent/report", (req, res) => {
   engine.runTests();
   res.json({ ok: true });
 });
+
+/* ------------------------------------------------------------ integrations: Microsoft 365 */
+const m365 = require("./integrations/m365");
+app.get("/api/integrations/m365", reader, (req, res) => res.json(m365.view()));
+app.put("/api/integrations/m365", admin, (req, res) => {
+  try { m365.saveConfig(req.body || {}); } catch (e) { return bad(res, e.message); }
+  audit(req.user.id, "intégration Microsoft 365 configurée");
+  res.json({ ok: true });
+});
+app.post("/api/integrations/m365/sync", admin, async (req, res) => {
+  try {
+    await m365.sync();
+    audit(req.user.id, "synchronisation Microsoft 365");
+    engine.runTests();
+    res.json(m365.view());
+  } catch (e) { engine.runTests(); bad(res, e.message, 502); }
+});
+app.delete("/api/integrations/m365", admin, (req, res) => {
+  m365.remove();
+  audit(req.user.id, "intégration Microsoft 365 supprimée");
+  engine.runTests();
+  res.json({ ok: true });
+});
+setInterval(() => { if (m365.config()?.status === "ok") m365.sync().then(() => engine.runTests()).catch(() => engine.runTests()); }, 6 * 3600e3);
 
 /* ------------------------------------------------------------ organisation */
 app.get("/api/org", reader, (req, res) => { const o = org(); res.json({ ...o, agent_token: req.user.role === "admin" ? o.agent_token : undefined }); });

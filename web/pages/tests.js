@@ -5,6 +5,7 @@ export async function render(main, ctx) {
   const ok = tests.filter((t) => t.status === "ok").length, bad = tests.filter((t) => t.status === "echec").length;
   const group = (source, title, sub) => {
     const ts = tests.filter((t) => t.source === source);
+    if (!ts.length) return "";
     return `<div class="card" style="margin-bottom:16px"><div class="card-h"><h3>${title}</h3><span class="muted small">${sub}</span></div>
       <div class="card-b"><div class="list">${ts.map((t) => `<div style="align-items:flex-start">
         <div style="padding-top:2px">${pill(TEST, t.status)}</div>
@@ -17,6 +18,7 @@ export async function render(main, ctx) {
   main.innerHTML = `<div class="head"><div><h1>Tests automatisés</h1><p>Surveillance continue : ${ok} réussi${ok > 1 ? "s" : ""}, ${bad} en échec sur ${tests.length}. Les tests sont recalculés à chaque changement et toutes les 15 minutes.</p></div>
       <div class="actions">${ctx.user.role === "admin" ? `<button class="btn" id="run">${icon("refresh")}Relancer les tests</button>` : ""}<a class="btn primary" href="#/appareils">${icon("laptop")}Agent Windows</a></div></div>
     ${group("agent", "Postes de travail", "vérifiés par l’agent Amane sur chaque ordinateur")}
+    ${group("m365", "Microsoft 365", `authentification multifacteur, via <a href="#/integrations">l’intégration Entra ID</a>`)}
     ${group("platform", "Programme de conformité", "calculés à partir des données d’Amane")}`;
   document.getElementById("run")?.addEventListener("click", async () => {
     try { await api("/api/tests/run", { method: "POST" }); toast("Tests relancés"); ctx.refresh(); } catch (e) { fail(e); }

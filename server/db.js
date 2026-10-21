@@ -74,6 +74,9 @@ CREATE TABLE IF NOT EXISTS processing (
 CREATE TABLE IF NOT EXISTS devices (
   id INTEGER PRIMARY KEY, device_key TEXT NOT NULL UNIQUE, hostname TEXT, serial TEXT, user_email TEXT, user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
   os TEXT, os_version TEXT, agent_version TEXT, results TEXT, last_seen TEXT NOT NULL, first_seen TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS integrations (provider TEXT PRIMARY KEY, config TEXT NOT NULL, status TEXT NOT NULL, message TEXT, details TEXT, last_sync TEXT);
+CREATE TABLE IF NOT EXISTS m365_users (id TEXT PRIMARY KEY, upn TEXT, name TEXT, email TEXT, enabled INTEGER NOT NULL DEFAULT 1, is_admin INTEGER NOT NULL DEFAULT 0,
+  admin_roles TEXT, mfa_registered INTEGER NOT NULL DEFAULT 0, methods TEXT, synced_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY, at TEXT NOT NULL, user_id INTEGER, action TEXT NOT NULL, entity TEXT, entity_id TEXT, details TEXT);
 `);
 
