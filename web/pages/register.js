@@ -53,7 +53,7 @@ async function openForm(row, cfg, ctx, admin) {
   const body = `<div class="form cols" id="frm">${cfg.fields.map((f) => fieldHtml(f, row?.[f.name])).join("")}</div>${extra}<div class="err" id="err" style="margin-top:10px"></div>`;
   const d = drawer(row ? esc(row[cfg.nameField]) : cfg.addLabel, row && cfg.sub ? cfg.sub(row) : "", body,
     admin ? `${row ? `<button class="btn danger" id="del" style="margin-right:auto">${icon("trash")}Supprimer</button>` : ""}<button class="btn" data-x>Annuler</button><button class="btn primary" id="save">Enregistrer</button>` : "");
-  if (!admin) { d.el.querySelectorAll("input, select, textarea").forEach((x) => (x.disabled = true)); return; }
+  if (!admin) { d.el.querySelectorAll("input, select, textarea").forEach((x) => (x.disabled = true)); cfg.wire?.(d.el, row, false); return; }
   d.el.querySelector("[data-x]").onclick = d.close;
   cfg.wire?.(d.el, row);
   d.el.querySelector("#save").onclick = async () => {

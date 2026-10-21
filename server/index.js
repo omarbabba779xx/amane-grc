@@ -3,7 +3,7 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
-const { all, get, run, tx, now, audit, seedPolicies, DATA } = require("./db");
+const { all, get, run, tx, now, audit, seedPolicies, setting, saveSetting, DATA } = require("./db");
 const auth = require("./auth");
 const engine = require("./engine");
 
@@ -97,6 +97,7 @@ app.get("/api/dashboard", reader, (req, res) => {
     people: get("SELECT COUNT(*) AS n FROM users WHERE active = 1 AND role != 'auditeur'").n,
     devices: get("SELECT COUNT(*) AS n FROM devices").n,
     processing: get("SELECT COUNT(*) AS n FROM processing").n,
+    incidents: { open: get("SELECT COUNT(*) AS n FROM incidents WHERE status != 'clos'").n, to_declare: get("SELECT COUNT(*) AS n FROM incidents WHERE dgssi_required = 1 AND dgssi_notified_at IS NULL").n },
     activity: all(`SELECT a.at, a.action, a.entity, a.entity_id, u.name FROM audit_log a LEFT JOIN users u ON u.id = a.user_id ORDER BY a.id DESC LIMIT 12`),
   });
 });
@@ -424,6 +425,104 @@ app.delete("/api/integrations/m365", admin, (req, res) => {
   res.json({ ok: true });
 });
 setInterval(() => { if (m365.config()?.status === "ok") m365.sync().then(() => engine.runTests()).catch(() => engine.runTests()); }, 6 * 3600e3);
+
+/* ------------------------------------------------------------ incidents (loi 05-20: declaration to the DGSSI) */
+const SEVERITY = ["faible", "moyenne", "elevee", "critique"], INC_STATUS = ["ouvert", "en_cours", "clos"];
+register("incidents", ["title", "description", "category", "severity", "status", "detected_at", "occurred_at", "systems", "personal_data", "dgssi_required",
+  "dgssi_notified_at", "dgssi_ref", "cndp_notified_at", "actions", "root_cause", "lessons", "closed_at", "owner_id"], {
+  updatedAt: true,
+  validate: (f, creating) => (creating && (!f.title || !f.detected_at) ? "Le titre et la date de détection sont obligatoires."
+    : f.severity && !SEVERITY.includes(f.severity) ? "Gravité inconnue." : f.status && !INC_STATUS.includes(f.status) ? "Statut inconnu."
+    : f.status === "clos" && !f.closed_at ? ((f.closed_at = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 16)), null) : null),
+});
+app.get("/api/settings/incidents", reader, (req, res) => res.json(setting("incidents", { dgssi_hours: 24 })));
+app.put("/api/settings/incidents", admin, (req, res) => {
+  const h = Number(req.body?.dgssi_hours);
+  if (!(h >= 1 && h <= 720)) return bad(res, "Le délai doit être compris entre 1 et 720 heures.");
+  saveSetting("incidents", { dgssi_hours: Math.round(h) });
+  audit(req.user.id, "délai de déclaration DGSSI modifié", null, null, { heures: h });
+  engine.runTests();
+  res.json({ ok: true });
+});
+
+/* ------------------------------------------------------------ e-mail alerts */
+const mailer = require("./mailer");
+app.get("/api/settings/mail", admin, (req, res) => res.json({ ...mailer.view(), log: mailer.log() }));
+app.put("/api/settings/mail", admin, (req, res) => {
+  try { mailer.save(req.body || {}); } catch (e) { return bad(res, e.message); }
+  audit(req.user.id, "configuration des alertes e-mail");
+  res.json({ ok: true });
+});
+app.post("/api/settings/mail/test", admin, async (req, res) => {
+  try {
+    await mailer.send(req.user.email, "Test des alertes Amane", `Bonjour ${req.user.name},\n\nLes alertes e-mail d'Amane fonctionnent.`, "test-envoi");
+    res.json({ ok: true, to: req.user.email });
+  } catch (e) { bad(res, `Échec de l'envoi : ${e.message}`, 502); }
+});
+app.post("/api/settings/mail/reminders", admin, (req, res) => {
+  if (!mailer.configured()) return bad(res, "Configurez d'abord le serveur d'envoi.");
+  audit(req.user.id, "relances envoyées aux collaborateurs");
+  res.json({ ok: true, sent: mailer.weeklyReminders() });
+});
+engine.events.on("failing", (list) => mailer.testsFailed(list));
+setInterval(() => mailer.tick(), 3600e3);
+setTimeout(() => mailer.tick(), 30e3);
+
+/* ------------------------------------------------------------ Trust Center */
+const trust = require("./trust");
+const appUrl = (req) => mailer.view().base_url || `${req.protocol}://${req.get("host")}`;
+app.get("/api/trust", reader, (req, res) => res.json({ config: trust.config(), requests: req.user.role === "admin" ? trust.requests() : [], access_days: trust.ACCESS_DAYS }));
+app.put("/api/trust", admin, (req, res) => {
+  try { trust.save(req.body || {}); } catch (e) { return bad(res, e.message); }
+  audit(req.user.id, "Trust Center modifié", null, null, { publie: !!trust.config().enabled });
+  res.json({ ok: true });
+});
+app.post("/api/trust/requests/:id/:decision(approve|reject)", admin, (req, res) => {
+  let r;
+  try { r = trust.decide(Number(req.params.id), req.params.decision === "approve", req.user.id); } catch (e) { return bad(res, e.message, 404); }
+  const url = r.token ? `${appUrl(req)}/trust?acces=${r.token}` : null;
+  audit(req.user.id, r.token ? "accès Trust Center accordé" : "accès Trust Center refusé", "trust_request", r.id, { email: r.email });
+  if (r.token && mailer.configured()) mailer.send(r.email, "Accès aux documents de sécurité", `Bonjour ${r.name},\n\nVotre demande d'accès aux documents de sécurité a été acceptée. Ce lien personnel est valable ${trust.ACCESS_DAYS} jours :\n\n${url}`, "trust").catch(() => {});
+  res.json({ ok: true, url, emailed: !!(r.token && mailer.configured()) });
+});
+// public endpoints (no session)
+const trustHits = new Map(); // ip -> timestamps: 5 requests per hour
+app.get("/api/public/trust", (req, res) => {
+  const v = trust.publicView(String(req.query.acces || ""));
+  v ? res.json(v) : bad(res, "Trust Center non publié", 404);
+});
+app.get("/api/public/trust/policies/:code", (req, res) => {
+  const p = trust.policyText(req.params.code, String(req.query.acces || ""));
+  p ? res.json(p) : bad(res, "Document non disponible", 404);
+});
+app.post("/api/public/trust/requests", (req, res) => {
+  const t = Date.now(), recent = (trustHits.get(req.ip) || []).filter((x) => t - x < 3600e3);
+  if (recent.length >= 5) return bad(res, "Trop de demandes. Réessayez plus tard.", 429);
+  trustHits.set(req.ip, [...recent, t]);
+  let id;
+  try { id = trust.request(req.body || {}); } catch (e) { return bad(res, e.message); }
+  audit(null, "demande d'accès Trust Center", "trust_request", id, { email: req.body.email });
+  if (mailer.configured()) for (const a of all("SELECT email, name FROM users WHERE role = 'admin' AND active = 1"))
+    mailer.send(a.email, "Nouvelle demande d'accès au Trust Center", `Bonjour ${a.name},\n\n${req.body.name} (${req.body.email}${req.body.company ? `, ${req.body.company}` : ""}) demande l'accès aux documents de sécurité.\n\nMotif : ${req.body.reason || "—"}\n\n${appUrl(req)}/#/trust-center`, "trust").catch(() => {});
+  res.json({ ok: true });
+});
+
+/* ------------------------------------------------------------ EBIOS Risk Manager */
+const ebios = require("./ebios");
+app.get("/api/ebios", reader, (req, res) => res.json(ebios.list()));
+app.post("/api/ebios", admin, (req, res) => {
+  try { const id = ebios.create(String(req.body?.kind), req.body?.data || {}); audit(req.user.id, "EBIOS RM : élément ajouté", "ebios", id, { kind: req.body.kind }); res.json({ ok: true, id }); }
+  catch (e) { bad(res, e.message); }
+});
+app.patch("/api/ebios/:id", admin, (req, res) => {
+  try { ebios.update(Number(req.params.id), req.body?.data || {}); audit(req.user.id, "EBIOS RM : élément modifié", "ebios", req.params.id); res.json({ ok: true }); }
+  catch (e) { bad(res, e.message); }
+});
+app.delete("/api/ebios/:id", admin, (req, res) => { ebios.remove(Number(req.params.id)); audit(req.user.id, "EBIOS RM : élément supprimé", "ebios", req.params.id); res.json({ ok: true }); });
+app.post("/api/ebios/:id/to-risk", admin, (req, res) => {
+  try { const id = ebios.toRisk(Number(req.params.id)); audit(req.user.id, "EBIOS RM : risque envoyé au registre", "risks", id); engine.runTests(); res.json({ ok: true, risk_id: id }); }
+  catch (e) { bad(res, e.message); }
+});
 
 /* ------------------------------------------------------------ organisation */
 app.get("/api/org", reader, (req, res) => { const o = org(); res.json({ ...o, agent_token: req.user.role === "admin" ? o.agent_token : undefined }); });

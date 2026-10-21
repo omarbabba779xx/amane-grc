@@ -25,7 +25,12 @@ const SHOTS = [
     ["appareils", "#/appareils"],
     ["personnes", "#/personnes"],
     ["integrations", "#/integrations"],
+    ["incidents", "#/incidents"],
+    ["ebios-atelier1", "#/ebios/1"],
+    ["ebios-traitement", "#/ebios/5"],
+    ["trust-center-admin", "#/trust-center"],
   ]],
+  [null, [["trust-center", "/trust", { wait: ".tc-hero" }]]],
   ["k.tazi@atlas-demo.test", [["mon-espace", "#/mon-espace"]]],
 ];
 
@@ -34,13 +39,15 @@ const SHOTS = [
   for (const [email, pages] of SHOTS) {
     const ctx = await browser.createBrowserContext();
     const page = await ctx.newPage();
-    await page.goto(`${BASE}/#/connexion`, { waitUntil: "networkidle0" });
-    await page.type("input[name=email]", email);
-    await page.type("input[name=password]", password);
-    await Promise.all([page.waitForNavigation({ waitUntil: "networkidle0" }), page.click("form button")]);
+    if (email) { // the public Trust Center needs no account
+      await page.goto(`${BASE}/#/connexion`, { waitUntil: "networkidle0" });
+      await page.type("input[name=email]", email);
+      await page.type("input[name=password]", password);
+      await Promise.all([page.waitForNavigation({ waitUntil: "networkidle0" }), page.click("form button")]);
+    }
     for (const [name, hash, opt = {}] of pages) {
       if (ONLY && !ONLY.includes(name)) continue;
-      await page.goto(`${BASE}/${hash}`, { waitUntil: "networkidle0" });
+      await page.goto(`${BASE}${hash.startsWith("/") ? "" : "/"}${hash}`, { waitUntil: "networkidle0" });
       await page.reload({ waitUntil: "networkidle0" });
       await page.waitForSelector(opt.wait || ".head h1");
       await new Promise((r) => setTimeout(r, 600));

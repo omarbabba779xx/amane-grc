@@ -184,3 +184,45 @@ pre.cmd { background: var(--side); color: #e6e7ff; padding: 12px 14px; border-ra
 @keyframes slide { from { transform: translateX(40px); opacity: 0; } }
 @keyframes pop { from { transform: translate(-50%, -46%); opacity: 0; } }
 @media print { .side, .head .actions, .toolbar { display: none !important; } .app { display: block; } main { padding: 0; } .card { box-shadow: none; } }
+
+/* EBIOS RM */
+.steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px; }
+.step { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: inherit; text-decoration: none; }
+.step b { display: block; font-size: 13.5px; }
+.step .n { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--mute-soft); font-weight: 700; font-size: 13px; }
+.step.on { border-color: var(--accent, #5b47f0); box-shadow: 0 0 0 3px rgba(91, 71, 240, .12); }
+.step.on .n { background: linear-gradient(135deg, #5b47f0, #4fb6ff); color: #fff; }
+@media (max-width: 1100px) { .steps { grid-template-columns: 1fr; } }
+.heat4 { display: grid; grid-template-columns: 28px repeat(4, 1fr); gap: 4px; margin-bottom: 10px; }
+.heat4 .ax { display: grid; place-items: center; font-size: 11px; color: var(--fg-3); font-weight: 600; }
+.hm { min-height: 46px; border-radius: 6px; display: flex; flex-wrap: wrap; gap: 3px; align-content: center; justify-content: center; padding: 4px; }
+.hm.ok { background: var(--ok-soft); } .hm.warn { background: var(--warn-soft); } .hm.bad { background: var(--bad-soft); }
+.hm .dot { width: 20px; height: 20px; border-radius: 50%; background: var(--side); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+
+/* printable sheets (DGSSI declaration) */
+.print-sheet { display: none; }
+.print-sheet h2 { font-size: 14px; margin: 16px 0 6px; }
+table.sheet { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.sheet th, table.sheet td { border: 1px solid #c9ccd8; padding: 6px 8px; }
+table.sheet th { background: #f3f4f8; font-weight: 600; }
+@media print { body.printing > *:not(.print-sheet) { display: none !important; } body.printing .print-sheet { display: block; } }
+
+/* public Trust Center */
+.tc-wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.tc-top { background: var(--side); color: #fff; }
+.tc-bar { display: flex; align-items: center; gap: 12px; height: 68px; }
+.tc-bar b { display: block; font-size: 15px; } .tc-bar span { font-size: 12px; color: var(--side-fg); }
+.tc-hero { background: linear-gradient(135deg, var(--side) 0%, #2a2470 60%, #3b55c9 100%); color: #fff; padding: 46px 0 56px; }
+.tc-hero h1 { font-size: 38px; margin: 14px 0 10px; }
+.tc-hero p { max-width: 760px; font-size: 16px; line-height: 1.6; color: #dfe1f3; margin: 0 0 10px; }
+.tc-live { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 20px; background: rgba(255, 255, 255, .1); font-size: 12.5px; }
+.tc-live i { width: 8px; height: 8px; border-radius: 50%; background: #3ddc97; box-shadow: 0 0 0 4px rgba(61, 220, 151, .25); }
+.tc-h { font-size: 20px; margin: 34px 0 14px; }
+.tc-access { display: flex; gap: 10px; align-items: center; margin-top: 24px; background: var(--ok-soft); border-color: transparent; color: var(--ok); }
+.tc-item { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; padding: 3px 0; color: var(--fg-2); }
+.tc-item.ok svg { color: var(--ok); width: 16px; height: 16px; margin-top: 2px; }
+.tc-pend { width: 10px; height: 10px; margin: 5px 3px 0; border-radius: 50%; border: 2px solid var(--line-2); flex: none; }
+.tc-cta { display: flex; gap: 16px; align-items: center; justify-content: space-between; margin-top: 24px; flex-wrap: wrap; }
+.tc-foot { padding: 30px 24px 40px; color: var(--fg-3); font-size: 12.5px; text-align: center; }
+.tc-bar .logo { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #7d6bff, #4fb6ff); display: grid; place-items: center; }
+.tc-bar .logo svg { width: 21px; height: 21px; fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }

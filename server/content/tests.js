@@ -25,5 +25,9 @@ module.exports = [
   t("T-VENDOR-REVIEW", "platform", "Fournisseurs critiques revus", "Chaque fournisseur de criticité élevée a été revu au cours des 12 derniers mois.", "Ouvrir Fournisseurs et enregistrer la revue annuelle."),
   t("T-ACCESS-REVIEW", "platform", "Revue des accès réalisée", "Une preuve de revue des accès a été déposée au cours des 6 derniers mois sur la mesure IAM-05.", "Réaliser la revue et déposer le compte rendu comme preuve de la mesure IAM-05."),
   t("T-0908-REG", "platform", "Registre des traitements tenu", "Le registre 09-08 contient au moins un traitement et chaque traitement a une finalité, une base légale et une durée de conservation.", "Compléter le registre des traitements."),
+  t("T-INC-DGSSI", "platform", "Incidents déclarés à la DGSSI", "Chaque incident du registre marqué « à déclarer » a été déclaré à la DGSSI (maCERT) et sa référence est enregistrée.",
+    "Déclarer l'incident à la DGSSI (maCERT) avec la fiche de déclaration d'Amane, puis saisir la date et la référence de la déclaration."),
+  t("T-INC-REX", "platform", "Retour d'expérience des incidents graves", "Chaque incident clos de gravité élevée ou critique a une cause identifiée et des enseignements documentés.",
+    "Compléter la cause et le retour d'expérience de l'incident, puis mettre à jour les mesures concernées."),
   t("T-0908-DECL", "platform", "Traitements déclarés à la CNDP", "Chaque traitement du registre est déclaré ou autorisé par la CNDP.", "Effectuer la déclaration sur le portail de la CNDP puis saisir la référence du récépissé dans Amane."),
 ];

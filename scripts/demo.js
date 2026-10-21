@@ -10,7 +10,7 @@ fs.mkdirSync(DIR, { recursive: true });
 for (const f of ["amane.db", "amane.db-wal", "amane.db-shm"]) fs.rmSync(path.join(DIR, f), { force: true });
 process.env.AMANE_DATA = DIR;
 
-const { all, get, run, tx, seedPolicies } = require("../server/db");
+const { all, get, run, tx, seedPolicies, saveSetting } = require("../server/db");
 const { hashPassword } = require("../server/auth");
 const engine = require("../server/engine");
 
@@ -123,9 +123,65 @@ tx(() => {
     .forEach(([host, email, o], i) => run(`INSERT INTO devices (device_key, hostname, serial, user_email, user_id, os, os_version, agent_version, results, last_seen, first_seen)
       VALUES (?, ?, ?, ?, ?, 'Windows 11', '25H2 (build 26200)', '1.0.0', ?, ?, ?)`, crypto.randomUUID(), host, `PF3K${1000 + i * 137}`, email, ids[email], JSON.stringify(R(o)), day(i * 0.1), day(80)));
 
+  // Security incidents (one still to be declared to the DGSSI)
+  const local = (n) => new Date(Date.now() - n * 864e5 - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
+  [["Hameçonnage ciblant la comptabilité", "Hameçonnage", "moyenne", "clos", 64, "Messagerie Microsoft 365", 0, 0, null, null, null,
+    "Faux courriel de fournisseur demandant un changement de RIB. Signalé par la comptable avant tout virement.", "Message supprimé des boîtes, expéditeur bloqué, alerte à tout le personnel.",
+    "Usurpation du domaine d'un fournisseur ; contrôle du changement de RIB non formalisé.", "Procédure de double validation des changements de RIB ; session de sensibilisation.", 62],
+   ["Vol d'un ordinateur portable de consultant", "Perte ou vol de matériel", "elevee", "clos", 41, "Poste ATLAS-PC-012", 1, 0, null, null, local(40),
+    "Ordinateur volé dans un véhicule. Disque chiffré par BitLocker, session protégée.", "Compte désactivé, mots de passe réinitialisés, effacement à distance demandé.",
+    "Matériel laissé sans surveillance dans un véhicule.", "Rappel de la charte nomade ; vérification du chiffrement de tous les portables par l'agent.", 38],
+   ["Compromission d'une boîte aux lettres", "Compromission de compte", "elevee", "en_cours", 0.4, "Messagerie, partage de documents clients", 1, 1, null, null, null,
+    "Connexion depuis l'étranger sur le compte d'un consultant, règles de transfert créées vers une adresse externe.", "Session révoquée, mot de passe réinitialisé, règles supprimées, MFA vérifiée.", null, null, null]]
+    .forEach(([title, cat, sev, status, ago, systems, personal, dgssi, dgssiAt, ref, cndpAt, desc, acts, cause, lessons, closed]) => run(`INSERT INTO incidents
+      (title, category, severity, status, detected_at, occurred_at, systems, personal_data, dgssi_required, dgssi_notified_at, dgssi_ref, cndp_notified_at, description, actions, root_cause, lessons, closed_at, owner_id, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, title, cat, sev, status, local(ago), local(ago + 0.1), systems, personal, dgssi, dgssiAt, ref, cndpAt, desc, acts, cause, lessons,
+      closed ? local(closed) : null, rssi, day(ago)));
+
+  // Optional framework followed by the demo company, and the public Trust Center
+  run("UPDATE frameworks SET enabled = 1 WHERE code = 'NIST_CSF'");
+  saveSetting("trust", { enabled: 1, headline: "La sécurité de vos dossiers, notre engagement", contact_email: "securite@atlas-demo.test",
+    intro: "Atlas Conseil traite chaque jour des informations confidentielles de ses clients. Notre programme de sécurité suit l'ISO 27001, la loi 09-08 sur la protection des données personnelles et la DNSSI. Cette page est mise à jour en continu à partir de nos contrôles.",
+    frameworks: ["ISO27001", "LOI0908", "DNSSI"], show_scores: 1, show_controls: 1, show_tests: 1, show_subprocessors: 1, policies: ["POL-PSSI", "POL-ACCES", "POL-SAUV", "POL-INC", "POL-DCP"] });
+  run("INSERT INTO trust_requests (name, email, company, reason, created_at) VALUES ('Leila Berrada', 'l.berrada@banque-demo.test', 'Banque Démo', 'Évaluation fournisseur avant renouvellement du contrat de conseil', ?)", day(0.3));
+  run("INSERT INTO trust_requests (name, email, company, reason, status, token, expires_at, decided_by, decided_at, created_at) VALUES ('Mehdi Alaoui', 'm.alaoui@assurance-demo.test', 'Assurance Démo', 'Questionnaire de sécurité annuel', 'approuvee', ?, ?, ?, ?, ?)",
+    crypto.randomBytes(24).toString("base64url"), new Date(Date.now() + 22 * 864e5).toISOString(), rssi, day(8), day(9));
+
   const actions = [["connexion"], ["politique publiée (v1)", "policy"], ["preuve ajoutée", "control", "IAM-05"], ["risks modifié", "risks"], ["mesure modifiée", "control"]];
   actions.forEach(([a, e, id], i) => run("INSERT INTO audit_log (at, user_id, action, entity, entity_id) VALUES (?, ?, ?, ?, ?)", day(i * 0.4), rssi, a, e || null, id || null));
 });
+
+// EBIOS RM analysis: the two main operational scenarios are sent to the risk register
+{
+  const ebios = require("../server/ebios");
+  const mk = (kind, data) => ebios.create(kind, data);
+  const vClients = mk("valeur", { nom: "Dossiers et données des clients", nature: "Information", responsable: "Direction", description: "Rapports, données financières et contrats confiés par les clients." });
+  const vMission = mk("valeur", { nom: "Réalisation des missions de conseil", nature: "Processus", responsable: "Youssef Benali" });
+  const vPaie = mk("valeur", { nom: "Paie et données du personnel", nature: "Information", responsable: "Nadia Amrani" });
+  [["Microsoft 365 (messagerie, SharePoint)", vClients, "Logiciel / SaaS"], ["Ordinateurs portables des consultants", vMission, "Matériel"], ["Serveur de fichiers et sauvegardes", vClients, "Matériel"],
+   ["Sage Paie", vPaie, "Logiciel / SaaS"], ["Infogérance Atlas IT", vMission, "Prestataire"]].forEach(([nom, valeur_id, type]) => mk("bien", { nom, valeur_id, type }));
+  const eFuite = mk("evenement", { valeur_id: vClients, gravite: 4, description: "Divulgation de dossiers clients confidentiels", impacts: "Perte de clients, sanctions CNDP, atteinte grave à l'image." });
+  const eIndispo = mk("evenement", { valeur_id: vMission, gravite: 3, description: "Arrêt des missions pendant plus de 3 jours", impacts: "Pénalités de retard, perte de chiffre d'affaires." });
+  mk("evenement", { valeur_id: vPaie, gravite: 2, description: "Altération des données de paie", impacts: "Erreurs de salaires, contentieux avec le personnel." });
+  mk("ecart", { referentiel: "ISO 27001", description: "Pas d'audit interne du SMSI réalisé à ce jour (A.5.35, clause 9.2).", justification: "Audit interne planifié au prochain trimestre." });
+  const srCyber = mk("srov", { source: "Cybercriminel organisé", objectif: "Extorsion par rançongiciel", motivation: 3, ressources: 2, activite: 3, retenu: 1 });
+  const srEspion = mk("srov", { source: "Concurrent ou officine", objectif: "Obtenir des dossiers stratégiques de clients", motivation: 2, ressources: 2, activite: 2, retenu: 1 });
+  mk("srov", { source: "Salarié mécontent", objectif: "Nuire à l'entreprise en divulguant des données", motivation: 2, ressources: 1, activite: 1, retenu: 1 });
+  mk("srov", { source: "Hacktiviste", objectif: "Défigurer le site web", motivation: 1, ressources: 1, activite: 2, retenu: 0 });
+  [["Infogérance Atlas IT", "Infogérant", 4, 4, 2, 3], ["Microsoft", "Fournisseur cloud", 4, 3, 4, 4], ["Clients grands comptes", "Client", 3, 2, 3, 3]]
+    .forEach(([nom, categorie, dependance, penetration, maturite, confiance]) => mk("partie", { nom, categorie, dependance, penetration, maturite, confiance }));
+  const sRanson = mk("strategique", { nom: "Rançongiciel déployé via l'accès distant de l'infogérant", srov_id: srCyber, evenement_id: eIndispo, parties: "Infogérance Atlas IT",
+    chemin: "Le cybercriminel compromet le compte de l'infogérant puis chiffre le serveur de fichiers et les sauvegardes en ligne." });
+  const sVol = mk("strategique", { nom: "Vol de dossiers clients par compromission de la messagerie", srov_id: srEspion, evenement_id: eFuite, parties: "Microsoft",
+    chemin: "L'attaquant hameçonne un consultant, accède à sa boîte et aux espaces SharePoint partagés avec les clients." });
+  const ctlId = (code) => get("SELECT id FROM controls WHERE code = ?", code).id;
+  const o1 = mk("operationnel", { strategique_id: sRanson, vraisemblance: 3, decision: "reduire", mesures: ["OPS-01", "IAM-03", "IAM-04", "VEN-02", "END-04"].map(ctlId),
+    mode: "Hameçonnage du technicien de l'infogérant, connexion au VPN sans MFA, élévation de privilèges sur le domaine, suppression des sauvegardes en ligne puis chiffrement." });
+  const o2 = mk("operationnel", { strategique_id: sVol, vraisemblance: 2, decision: "reduire", mesures: ["RH-03", "IAM-03", "NET-02", "OPS-03"].map(ctlId),
+    mode: "Page de connexion Microsoft contrefaite, vol de jeton de session, création de règles de transfert et téléchargement des dossiers SharePoint." });
+  mk("operationnel", { strategique_id: sVol, vraisemblance: 1, decision: "accepter", mesures: [ctlId("END-01")], mode: "Vol d'un portable non chiffré contenant des copies locales de dossiers." });
+  ebios.toRisk(o1); ebios.toRisk(o2);
+}
 engine.runTests();
 fs.writeFileSync(path.join(DIR, "IDENTIFIANTS-DEMO.txt"), `Instance de démonstration Amane (Atlas Conseil SARL, société fictive)
 Lancement : AMANE_DATA=demo-data PORT=4871 npm start

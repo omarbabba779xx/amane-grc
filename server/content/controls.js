@@ -130,9 +130,9 @@ module.exports = [
   c("INC-01", "Incidents", "Procédure de gestion des incidents", "Définir rôles, niveaux de gravité, escalade et modèles de communication.", "Procédure approuvée, annuaire de crise.", "Annuelle",
     ["A.5.24", "A.5.25", "A.5.26"], ["G-2"], ["INC-1"], [], ["POL-INC"]),
   c("INC-02", "Incidents", "Retour d'expérience et preuves", "Analyser chaque incident significatif et préserver les preuves.", "Rapports post-incident.", "Par incident",
-    ["A.5.27", "A.5.28"], ["G-2"], ["INC-1"]),
+    ["A.5.27", "A.5.28"], ["G-2"], ["INC-1"], ["T-INC-REX"]),
   c("INC-03", "Incidents", "Déclaration aux autorités", "Déclarer les incidents à la DGSSI (maCERT) et les violations de données à la CNDP lorsque c'est requis.", "Procédure de déclaration, preuves d'envoi.", "Par incident",
-    ["A.5.5", "A.5.26"], ["G-2"], ["INC-2"], [], ["POL-INC"]),
+    ["A.5.5", "A.5.26"], ["G-2"], ["INC-2"], ["T-INC-DGSSI"], ["POL-INC"]),
   // Continuité
   c("BCP-01", "Continuité", "Plan de continuité et de reprise", "Identifier les activités critiques, définir RTO/RPO et documenter le plan de reprise.", "Bilan d'impact, plan de continuité.", "Annuelle",
     ["A.5.29", "A.5.30"], [], ["CON-1"], [], ["POL-PCA"]),

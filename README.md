@@ -1,6 +1,6 @@
 # Amane GRC
 
-**Plateforme de conformité pour les PME marocaines** : ISO 27001:2022, loi 09-08 (CNDP) et DNSSI / loi 05-20, dans une seule application web, avec une bibliothèque de mesures unifiées, des tests automatisés sur les postes Windows, des politiques prêtes à l'emploi et les registres exigés par les auditeurs.
+**Plateforme de conformité pour les PME marocaines** : ISO 27001:2022, loi 09-08 (CNDP) et DNSSI / loi 05-20, plus NIST CSF 2.0 et COBIT 2019 en option, dans une seule application web : mesures unifiées, tests automatisés sur les postes Windows et Microsoft 365, politiques prêtes à l'emploi, analyse de risques EBIOS RM, registre des incidents avec déclaration à la DGSSI, alertes par e-mail et Trust Center public.
 
 > « Amane » (أمان) signifie sécurité, confiance.
 
@@ -29,6 +29,18 @@
     <td width="50%"><img src="docs/integrations.png" alt="Intégration Microsoft 365"><p align="center"><b>Microsoft 365</b> · MFA de chaque compte, administrateurs, accès conditionnel</p></td>
     <td width="50%"><img src="docs/personnes.png" alt="Personnes"><p align="center"><b>Personnes</b> · politiques, formation, poste et MFA de chacun</p></td>
   </tr>
+  <tr>
+    <td width="50%"><img src="docs/trust-center.png" alt="Trust Center public"><p align="center"><b>Trust Center</b> · page publique mise à jour en continu</p></td>
+    <td width="50%"><img src="docs/trust-center-admin.png" alt="Administration du Trust Center"><p align="center"><b>Trust Center</b> · contenu publié et demandes d’accès aux documents</p></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/incidents.png" alt="Registre des incidents"><p align="center"><b>Incidents</b> · échéance de déclaration DGSSI, violations de données</p></td>
+    <td width="50%"><img src="docs/ebios-traitement.png" alt="EBIOS RM, atelier 5"><p align="center"><b>EBIOS RM</b> · cartographie, mesures et envoi au registre</p></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/ebios-atelier1.png" alt="EBIOS RM, atelier 1"><p align="center"><b>EBIOS RM</b> · cinq ateliers, socle de sécurité calculé</p></td>
+    <td width="50%"><img src="docs/tests.png" alt="Tests automatisés"><p align="center"><b>Tests</b> · postes, Microsoft 365, incidents et programme</p></td>
+  </tr>
 </table>
 
 <sub>Captures réalisées sur l’instance de démonstration (société fictive Atlas Conseil SARL).</sub>
@@ -37,12 +49,16 @@
 
 | Module | Contenu |
 |---|---|
-| **Référentiels** | ISO 27001:2022 (clauses 4 à 10 + 93 mesures de l'Annexe A), loi 09-08 (16 obligations), DNSSI et loi 05-20 (21 exigences). Score de préparation par référentiel, exigences satisfaites, exclusions justifiées. |
-| **Mesures unifiées** | 66 mesures en français, chacune reliée à toutes les exigences qu'elle couvre : avancer sur une mesure fait progresser les trois référentiels. 100 % des exigences sont couvertes. |
+| **Référentiels** | ISO 27001:2022 (clauses 4 à 10 + 93 mesures de l'Annexe A), loi 09-08 (16 obligations), DNSSI et loi 05-20 (21 exigences). En option, activables dans Paramètres : NIST CSF 2.0 (22 catégories) et COBIT 2019 (40 objectifs, dont 8 hors périmètre sécurité exclus avec justification). Score de préparation par référentiel, exigences satisfaites, exclusions justifiées. |
+| **Mesures unifiées** | 66 mesures en français, chacune reliée à toutes les exigences qu'elle couvre : avancer sur une mesure fait progresser tous les référentiels. 100 % des exigences sont couvertes. |
 | **Preuves** | Fichiers, liens et notes déposés sur chaque mesure, horodatés et attribués. |
-| **Tests automatisés** | 20 tests en continu : 8 vérifiés sur chaque poste par l'agent Windows (chiffrement, antivirus, pare-feu, mises à jour, verrouillage, version de Windows, droits administrateur, mots de passe), 3 sur Microsoft 365 (MFA de tous les comptes, MFA des administrateurs, MFA imposée au niveau du locataire) et 9 calculés par la plateforme (politiques acceptées, formation, revue des risques, des fournisseurs et des accès, déclarations CNDP…). |
+| **Tests automatisés** | 22 tests en continu : 8 vérifiés sur chaque poste par l'agent Windows (chiffrement, antivirus, pare-feu, mises à jour, verrouillage, version de Windows, droits administrateur, mots de passe), 3 sur Microsoft 365 (MFA de tous les comptes, MFA des administrateurs, MFA imposée au niveau du locataire) et 11 calculés par la plateforme (politiques acceptées, formation, revue des risques, des fournisseurs et des accès, déclarations CNDP, incidents déclarés à la DGSSI, retours d'expérience…). |
 | **Politiques** | 12 modèles en français (PSSI, contrôle d'accès, charte, sauvegarde, incidents, données personnelles, fournisseurs, actifs, télétravail, développement, continuité, vulnérabilités), versionnés, approuvés et acceptés par chaque collaborateur. |
 | **Risques** | Registre avec cartographie inhérente et résiduelle (5 × 5), plan de traitement, mesures associées et bibliothèque de 10 risques types de PME. |
+| **EBIOS RM** | Analyse de risques selon la méthode de l'ANSSI en cinq ateliers : valeurs métier, biens supports, événements redoutés et socle de sécurité (calculé depuis les référentiels), couples source de risque / objectif visé, parties prenantes et menace, scénarios stratégiques et opérationnels, cartographie gravité × vraisemblance. Les scénarios retenus sont envoyés au registre des risques avec leurs mesures. |
+| **Incidents** | Registre des incidents, échéance de déclaration à la DGSSI (maCERT) selon un délai interne paramétrable, fiche de déclaration imprimable, suivi des violations de données personnelles (information de la CNDP), cause racine et retour d'expérience. |
+| **Trust Center** | Page publique sans compte (`/trust`) : référentiels et scores, mesures en place par domaine, contrôles automatisés réussis, sous-traitants, politiques. Le texte des politiques est accessible sur demande, après accord de l'administrateur, par un lien personnel valable 30 jours. |
+| **Alertes par e-mail** | Serveur SMTP au choix : alerte des administrateurs quand un test passe en échec, relance des collaborateurs chaque lundi (politiques, formation, agent), rappels des déclarations DGSSI, notification des demandes d'accès au Trust Center. Journal des envois. |
 | **Fournisseurs** | Criticité, accès aux données, pays, clauses de protection des données, revue annuelle. |
 | **Registre 09-08** | Traitements, finalités, bases légales, catégories de données, durées, transferts hors Maroc, statut et référence CNDP. |
 | **Personnes et appareils** | Intégration sécurité de chaque collaborateur (politiques, formation, poste équipé, MFA) et inventaire des postes remonté par l'agent. |
@@ -114,6 +130,22 @@ $env:AMANE_M365_LOGIN = "http://127.0.0.1:4999"; $env:AMANE_M365_GRAPH = "http:/
 
 puis configurez n'importe quels identifiants (GUID ou domaine) avec le secret `mock-secret`.
 
+## Trust Center
+
+Dans **Organisation › Trust Center**, choisissez ce que vous publiez puis partagez l'adresse `/trust` (Amane doit être joignable depuis Internet, derrière un proxy HTTPS). Seules les mesures **en place** sont listées : la page ne révèle jamais ce qui manque encore, ni preuves, ni risques, ni noms de personnes. Un client peut demander l'accès aux politiques ; l'administrateur accorde ou refuse la demande, et le demandeur reçoit un lien personnel valable 30 jours (par e-mail si les alertes sont configurées). Les demandes publiques sont limitées à 5 par heure et par adresse IP.
+
+## Incidents et déclaration à la DGSSI
+
+La loi 05-20 impose aux entités concernées (administrations, infrastructures d'importance vitale, opérateurs) de déclarer sans délai à la DGSSI (maCERT) les incidents affectant la sécurité ou le fonctionnement de leurs systèmes. Amane calcule une échéance à partir de l'heure de détection et d'un **délai interne** que vous fixez dans Paramètres (24 heures par défaut), le test `Incidents déclarés à la DGSSI` passe en échec tant que la déclaration n'est pas saisie, et la fiche de déclaration pré-remplie s'imprime ou s'enregistre en PDF depuis l'incident. Vérifiez le formulaire et le canal officiels de la DGSSI avant l'envoi.
+
+## Alertes par e-mail
+
+Dans **Paramètres › Alertes par e-mail**, renseignez votre serveur SMTP (Microsoft 365 : `smtp.office365.com`, port 587 ; ou celui de votre hébergeur), l'adresse d'expédition et l'adresse d'Amane utilisée dans les liens. Le mot de passe est chiffré en AES-256-GCM. Un bouton envoie un e-mail de test ; un autre envoie immédiatement les relances aux collaborateurs.
+
+## EBIOS Risk Manager
+
+**Risques et tiers › Analyse EBIOS RM** suit les cinq ateliers de la méthode de l'ANSSI. Les échelles EBIOS (gravité et vraisemblance de 1 à 4) sont converties sur l'échelle du registre (1 à 5) lorsqu'un scénario opérationnel est envoyé au registre des risques ; un nouvel envoi met à jour le même risque.
+
 ## Architecture
 
 | Dossier | Rôle |
@@ -121,9 +153,13 @@ puis configurez n'importe quels identifiants (GUID ou domaine) avec le secret `m
 | `server/index.js` | API REST (Express), sessions, rôles, exports, endpoint de l'agent |
 | `server/db.js` | Schéma SQLite (`node:sqlite`) et chargement du contenu réglementaire |
 | `server/engine.js` | Moteur de conformité : tests automatisés, santé des mesures, scores |
+| `server/trust.js` | Trust Center : vue publique, accès aux documents, demandes |
+| `server/mailer.js` | Alertes e-mail (SMTP via Nodemailer), relances et rappels planifiés |
+| `server/ebios.js` | Ateliers EBIOS RM et envoi des scénarios au registre des risques |
 | `server/integrations/m365.js` | Connecteur Microsoft Graph (jeton client, comptes, méthodes MFA, rôles, accès conditionnel) |
 | `server/auth.js` | Mots de passe (scrypt), sessions en cookie HttpOnly, contrôle des rôles |
 | `server/content/` | Référentiels, 66 mesures et leurs correspondances, tests, modèles de politiques |
+| `web/trust.html` | Page publique du Trust Center |
 | `web/` | Application web (modules JavaScript, sans framework ni dépendance externe) |
 | `agent/amane-agent.ps1` | Agent Windows |
 | `scripts/demo.js` | Base de démonstration |
@@ -134,7 +170,7 @@ puis configurez n'importe quels identifiants (GUID ou domaine) avec le secret `m
 - Mots de passe hachés avec scrypt, 12 caractères minimum, limitation des tentatives de connexion.
 - Sessions par cookie `HttpOnly` et `SameSite=Strict`, en-têtes de sécurité (CSP stricte, anti-iframe).
 - Contrôle des rôles sur chaque route de l'API, journal d'activité.
-- Fonctionne hors ligne : aucune donnée n'est envoyée à un service tiers. Seule l'intégration Microsoft 365, si vous l'activez, interroge Microsoft Graph en lecture.
+- Fonctionne hors ligne : aucune donnée n'est envoyée à un service tiers. Seules les fonctions que vous activez sortent du serveur : l'intégration Microsoft 365 (lecture de Microsoft Graph), les alertes (votre serveur SMTP) et le Trust Center (page publique, contenu choisi).
 - Secrets d'intégration chiffrés au repos (AES-256-GCM).
 
 ## Avertissement

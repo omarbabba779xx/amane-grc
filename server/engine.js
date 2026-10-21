@@ -1,5 +1,8 @@
 // Compliance engine: evaluates automated tests, derives control health and framework scores.
-const { all, get, run, now } = require("./db");
+const { EventEmitter } = require("events");
+const { all, get, run, now, setting } = require("./db");
+
+const events = new EventEmitter(); // "failing": tests that just went from another state to "echec"
 
 const DAY = 864e5;
 const ago = (iso, days) => !iso || Date.now() - new Date(iso).getTime() > days * DAY;
@@ -66,6 +69,22 @@ const PLATFORM = {
     return ago(e?.last, 183) ? { status: "echec", details: { message: e?.last ? "Dernière revue il y a plus de 6 mois." : "Aucune preuve de revue des accès." } }
       : { status: "ok", details: { message: `Dernière revue le ${e.last.slice(0, 10)}.` } };
   },
+  "T-INC-DGSSI": () => {
+    const hours = setting("incidents", { dgssi_hours: 24 }).dgssi_hours;
+    const due = all("SELECT title, detected_at FROM incidents WHERE dgssi_required = 1 AND dgssi_notified_at IS NULL");
+    if (!due.length) return { status: "ok", details: { message: "Aucun incident en attente de déclaration." } };
+    const failing = due.map((i) => {
+      const late = Date.now() - new Date(i.detected_at).getTime() - hours * 3600e3;
+      return { name: i.title, info: late > 0 ? `déclaration en retard de ${Math.ceil(late / 3600e3)} h` : `à déclarer sous ${Math.ceil(-late / 3600e3)} h` };
+    });
+    return { status: "echec", details: { total: due.length, failing } };
+  },
+  "T-INC-REX": () => {
+    const inc = all("SELECT title, root_cause, lessons FROM incidents WHERE status = 'clos' AND severity IN ('elevee', 'critique')");
+    if (!inc.length) return { status: "ok", details: { message: "Aucun incident grave clos à analyser." } };
+    const failing = inc.filter((i) => !i.root_cause || !i.lessons).map((i) => ({ name: i.title, info: "cause ou retour d'expérience manquant" }));
+    return { status: failing.length ? "echec" : "ok", details: { total: inc.length, failing } };
+  },
   "T-0908-REG": () => {
     const ps = all("SELECT name, purpose, legal_basis, retention FROM processing");
     if (!ps.length) return { status: "echec", details: { message: "Le registre des traitements est vide." } };
@@ -100,11 +119,13 @@ function m365Test(code) {
 }
 
 function runTests() {
-  const at = now();
-  for (const t of all("SELECT code, source FROM tests")) {
+  const at = now(), failing = [];
+  for (const t of all("SELECT code, source, title, status FROM tests")) {
     const r = t.source === "agent" ? agentTest(t.code) : t.source === "m365" ? m365Test(t.code) : (PLATFORM[t.code] || (() => ({ status: "en_attente", details: {} })))();
     run("UPDATE tests SET status = ?, details = ?, last_run = ? WHERE code = ?", r.status, JSON.stringify(r.details), at, t.code);
+    if (r.status === "echec" && t.status !== "echec") failing.push({ code: t.code, title: t.title, details: r.details });
   }
+  if (failing.length) events.emit("failing", failing);
 }
 
 // Control health: "en_place" but with a failing test is flagged as needing attention.
@@ -148,4 +169,4 @@ function frameworkScores() {
   return out;
 }
 
-module.exports = { runTests, controlsWithHealth, frameworkScores, controlHealth };
+module.exports = { runTests, controlsWithHealth, frameworkScores, controlHealth, events };

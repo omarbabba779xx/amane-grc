@@ -9,6 +9,9 @@ const ROUTES = [
   [/^\/tests$/, "tests", "tests", ["admin", "auditeur"]],
   [/^\/politiques(?:\/(\d+))?$/, "policies", "policies", ["admin", "auditeur", "membre"]],
   [/^\/risques$/, "risks", "risks", ["admin", "auditeur"]],
+  [/^\/ebios(?:\/(\d))?$/, "ebios", "ebios", ["admin", "auditeur"]],
+  [/^\/incidents$/, "incidents", "incidents", ["admin", "auditeur"]],
+  [/^\/trust-center$/, "trust-center", "trust", ["admin", "auditeur"]],
   [/^\/fournisseurs$/, "vendors", "vendors", ["admin", "auditeur"]],
   [/^\/traitements$/, "processing", "processing", ["admin", "auditeur"]],
   [/^\/personnes$/, "people", "people", ["admin", "auditeur"]],
@@ -21,9 +24,9 @@ const ROUTES = [
 const NAV = [
   [null, [["dashboard", "#/", "Tableau de bord", "dashboard"], ["me", "#/mon-espace", "Mon espace", "home"]]],
   ["Conformité", [["frameworks", "#/referentiels", "Référentiels", "shield"], ["controls", "#/mesures", "Mesures", "list"], ["tests", "#/tests", "Tests automatisés", "pulse"], ["policies", "#/politiques", "Politiques", "doc"]]],
-  ["Risques et tiers", [["risks", "#/risques", "Risques", "risk"], ["vendors", "#/fournisseurs", "Fournisseurs", "vendor"]]],
+  ["Risques et tiers", [["risks", "#/risques", "Risques", "risk"], ["ebios", "#/ebios", "Analyse EBIOS RM", "target"], ["incidents", "#/incidents", "Incidents", "siren"], ["vendors", "#/fournisseurs", "Fournisseurs", "vendor"]]],
   ["Données personnelles", [["processing", "#/traitements", "Registre 09-08", "data"]]],
-  ["Organisation", [["people", "#/personnes", "Personnes", "people"], ["devices", "#/appareils", "Appareils", "laptop"], ["integrations", "#/integrations", "Intégrations", "cloud"]]],
+  ["Organisation", [["people", "#/personnes", "Personnes", "people"], ["devices", "#/appareils", "Appareils", "laptop"], ["integrations", "#/integrations", "Intégrations", "cloud"], ["trust", "#/trust-center", "Trust Center", "globe"]]],
   [null, [["reports", "#/rapports", "Rapports", "report"], ["settings", "#/parametres", "Paramètres", "settings"]]],
 ];
 const ROLE = { admin: "Administrateur", membre: "Collaborateur", auditeur: "Auditeur" };

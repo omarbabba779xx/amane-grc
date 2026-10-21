@@ -1,7 +1,7 @@
 {
   "name": "amane-grc",
-  "version": "0.1.0",
-  "description": "Amane GRC : plateforme de conformité (ISO 27001, loi 09-08, DNSSI) pour les PME marocaines",
+  "version": "0.2.0",
+  "description": "Amane GRC : plateforme de conformité (ISO 27001, loi 09-08, DNSSI, NIST CSF, COBIT, EBIOS RM) pour les PME marocaines",
   "author": "Omar",
   "private": true,
   "type": "commonjs",
@@ -16,7 +16,8 @@
     "node": ">=22.13"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "nodemailer": "10.0.15"
   },
   "devDependencies": {
     "puppeteer-core": "^23.11.1"
