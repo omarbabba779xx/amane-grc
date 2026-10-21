@@ -1,0 +1,23 @@
+// Automated tests. "agent" tests come from the Windows agent on each computer;
+// "platform" tests are computed from Amane's own data (policies, people, risks, vendors, registers).
+const t = (code, source, title, description, remediation) => ({ code, source, title, description, remediation });
+
+module.exports = [
+  t("T-DISK", "agent", "Disque système chiffré", "Le disque système de chaque ordinateur est chiffré par BitLocker.", "Activer BitLocker : Paramètres › Confidentialité et sécurité › Chiffrement de l'appareil, ou « manage-bde -on C: » en administrateur."),
+  t("T-AV", "agent", "Antivirus actif et à jour", "La protection en temps réel est active et les signatures ont moins de 7 jours.", "Ouvrir Sécurité Windows › Protection contre les virus et menaces, réactiver la protection et lancer une mise à jour."),
+  t("T-FW", "agent", "Pare-feu activé", "Le pare-feu Windows est actif sur les profils domaine, privé et public.", "Sécurité Windows › Pare-feu et protection du réseau : activer les trois profils."),
+  t("T-UPD", "agent", "Mises à jour de sécurité récentes", "Une mise à jour Windows a été installée dans les 30 derniers jours.", "Paramètres › Windows Update › Rechercher des mises à jour, puis redémarrer."),
+  t("T-LOCK", "agent", "Verrouillage automatique ≤ 15 min", "L'écran se verrouille après 15 minutes d'inactivité au plus.", "Paramètres › Comptes › Options de connexion, et délai de mise en veille de l'écran ≤ 15 minutes ; ou stratégie de groupe « Seuil d'inactivité de l'ordinateur »."),
+  t("T-OS", "agent", "Système d'exploitation supporté", "Windows 10 22H2 ou Windows 11 encore pris en charge par Microsoft.", "Mettre à niveau vers une version de Windows prise en charge."),
+  t("T-ADMIN", "agent", "Utilisateur sans droits administrateur", "L'utilisateur principal du poste n'est pas administrateur local.", "Retirer l'utilisateur du groupe Administrateurs et utiliser un compte d'administration dédié."),
+  t("T-PWD", "agent", "Longueur minimale des mots de passe", "La stratégie locale impose au moins 12 caractères (ou le poste est géré par un annuaire).", "Stratégie de sécurité locale › Stratégies de compte › Longueur minimale du mot de passe ≥ 12."),
+  t("T-POL-ACCEPT", "platform", "Politiques acceptées par le personnel", "Chaque collaborateur actif a accepté la dernière version de chaque politique publiée.", "Relancer les collaborateurs depuis la page Personnes."),
+  t("T-POL-REVIEW", "platform", "Politiques revues depuis moins d'un an", "Chaque politique publiée a été approuvée ou revue au cours des 12 derniers mois.", "Ouvrir la politique, la relire et publier une nouvelle version approuvée."),
+  t("T-TRAINING", "platform", "Formation sécurité à jour", "Chaque collaborateur actif a suivi la formation de sensibilisation au cours des 12 derniers mois.", "Programmer une session et enregistrer la formation sur la fiche de chaque personne."),
+  t("T-AGENT", "platform", "Postes équipés de l'agent", "Chaque collaborateur actif a au moins un ordinateur qui remonte des résultats depuis moins de 7 jours.", "Faire installer l'agent depuis Appareils › Installer l'agent."),
+  t("T-RISK-REVIEW", "platform", "Registre des risques revu", "Le registre contient des risques et tous ont été revus au cours des 12 derniers mois.", "Ouvrir Risques, mettre à jour l'évaluation et la date de revue."),
+  t("T-VENDOR-REVIEW", "platform", "Fournisseurs critiques revus", "Chaque fournisseur de criticité élevée a été revu au cours des 12 derniers mois.", "Ouvrir Fournisseurs et enregistrer la revue annuelle."),
+  t("T-ACCESS-REVIEW", "platform", "Revue des accès réalisée", "Une preuve de revue des accès a été déposée au cours des 6 derniers mois sur la mesure IAM-05.", "Réaliser la revue et déposer le compte rendu comme preuve de la mesure IAM-05."),
+  t("T-0908-REG", "platform", "Registre des traitements tenu", "Le registre 09-08 contient au moins un traitement et chaque traitement a une finalité, une base légale et une durée de conservation.", "Compléter le registre des traitements."),
+  t("T-0908-DECL", "platform", "Traitements déclarés à la CNDP", "Chaque traitement du registre est déclaré ou autorisé par la CNDP.", "Effectuer la déclaration sur le portail de la CNDP puis saisir la référence du récépissé dans Amane."),
+];
