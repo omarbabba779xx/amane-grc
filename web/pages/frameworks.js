@@ -4,12 +4,16 @@ export async function render(main, ctx) {
   if (ctx.param) return detail(main, ctx);
   const fws = await api("/api/frameworks");
   main.innerHTML = `<div class="head"><div><h1>Référentiels</h1><p>Chaque mesure Amane couvre plusieurs exigences à la fois : avancer sur une mesure fait progresser tous les référentiels concernés.</p></div></div>
-    <div class="grid g3">${fws.map((f) => `
-      <a class="card" href="#/referentiels/${f.code}" style="color:inherit;text-decoration:none">
-        <div class="fw-card">${ring(f.score, "prêt")}<div><h3>${esc(f.name)}</h3><p>${esc(f.description)}</p></div></div>
-        <div style="display:flex;gap:18px;padding:0 18px 16px" class="small">
-          <span><b>${f.requirements}</b> <span class="muted">exigences</span></span><span><b>${f.met}</b> <span class="muted">satisfaites</span></span>
-          <span><b>${f.controls}</b> <span class="muted">mesures liées</span></span></div></a>`).join("")}</div>`;
+    <div class="grid g3">${fws.map((f) => {
+      const p = (n) => (f.requirements ? (n / f.requirements) * 100 : 0);
+      return `<a class="card fw" href="#/referentiels/${f.code}" style="display:flex;flex-direction:column">
+        <div class="top"><span class="name">${esc(f.name)}</span></div>
+        <p class="small muted" style="margin:6px 0 0;flex:1">${esc(f.description)}</p>
+        <div class="score">${f.score}<small>% prêt</small></div>
+        <div class="seg"><i class="s-ok" style="width:${p(f.met)}%"></i><i class="s-part" style="width:${p(f.partial)}%"></i></div>
+        <div class="meta"><span><b style="color:var(--fg)">${f.met}</b> satisfaites · ${f.partial} en partie / ${f.requirements}</span><span>${f.controls} mesures liées</span></div></a>`;
+    }).join("")}</div>
+    <div class="legend"><span><i style="background:var(--ok)"></i>Exigence satisfaite</span><span><i style="background:var(--warn);opacity:.75"></i>En partie</span><span><i style="background:var(--mute-soft);border:1px solid var(--line-2)"></i>À traiter</span></div>`;
 }
 
 function reqState(r) {

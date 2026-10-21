@@ -4,7 +4,7 @@ export const CHECKS = [
   ["T-DISK", "Chiffrement"], ["T-AV", "Antivirus"], ["T-FW", "Pare-feu"], ["T-UPD", "Mises à jour"],
   ["T-LOCK", "Verrouillage"], ["T-OS", "Windows supporté"], ["T-ADMIN", "Sans droits admin"], ["T-PWD", "Mots de passe"],
 ];
-const dot = (s) => `<span title="${s}" style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px;background:${s === "ok" ? "var(--ok)" : s === "echec" ? "var(--bad)" : "#c8cbd8"}"></span>`;
+const dot = (s) => `<span title="${s}" style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px;background:${s === "ok" ? "var(--ok)" : s === "echec" ? "var(--bad)" : "var(--line-2)"}"></span>`;
 
 export function agentCommand(path) {
   const url = `${location.origin}${path}`;

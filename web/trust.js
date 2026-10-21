@@ -1,9 +1,11 @@
 // Public Trust Center: no account, read-only, shows only what the organisation chose to publish.
-import { esc, icon, ring, date, datetime, md, modal, toast } from "./lib.js";
+import { esc, icon, date, datetime, md, modal, toast, theme } from "./lib.js";
+
+theme();
 
 const root = document.getElementById("root");
 const token = new URLSearchParams(location.search).get("acces") || "";
-const STATE = { conforme: ["Conforme", "ok"], en_cours: ["En cours de mise en conformité", "info"], demarre: ["Programme démarré", "warn"] };
+const STATE = { conforme: ["Conforme", "ok"], en_cours: ["Mise en conformité en cours", "info"], demarre: ["Programme démarré", "warn"] };
 const LOGO = `<div class="logo"><svg viewBox="0 0 24 24"><path d="M12 3l7.5 3v6c0 4.6-3.2 8.4-7.5 9.9C7.7 20.4 4.5 16.6 4.5 12V6z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg></div>`;
 
 async function get(path) {
@@ -26,25 +28,29 @@ async function boot() {
     <header class="tc-top"><div class="tc-wrap tc-bar">${LOGO}<div><b>${esc(v.org.name)}</b><span>Trust Center</span></div>
       ${v.contact_email ? `<a class="btn" style="margin-left:auto" href="mailto:${esc(v.contact_email)}">${icon("mail")}Contacter l’équipe sécurité</a>` : ""}</div></header>
     <section class="tc-hero"><div class="tc-wrap">
-      <span class="tc-live"><i></i>Surveillance continue · mis à jour le ${datetime(v.updated_at)}</span>
+      <div class="eyebrow">TRUST CENTER · ${esc(v.org.name.toUpperCase())}</div>
       <h1>${esc(v.headline)}</h1>
       ${v.intro ? `<p>${esc(v.intro)}</p>` : ""}
-      ${v.org.sector || v.org.city ? `<div class="small" style="opacity:.75">${esc([v.org.sector, v.org.city].filter(Boolean).join(" · "))}</div>` : ""}
+      <div class="tc-facts">
+        <div><span class="tc-live"><i></i>Surveillance continue</span><b>${datetime(v.updated_at)}</b></div>
+        ${v.domains ? `<div>Mesures de sécurité en place<b>${ok}</b></div>` : ""}
+        ${v.tests ? `<div>Contrôles automatisés réussis<b>${v.tests.ok}</b></div>` : ""}
+        ${v.org.sector || v.org.city ? `<div>Organisme<b>${esc([v.org.sector, v.org.city].filter(Boolean).join(" · "))}</b></div>` : ""}
+      </div>
     </div></section>
     <main class="tc-wrap">
       ${v.access ? `<div class="card card-b tc-access">${icon("check")}<div>Accès aux documents accordé à <b>${esc(v.access.name)}</b>${v.access.company ? ` (${esc(v.access.company)})` : ""} jusqu’au ${date(v.access.expires_at)}.</div></div>` : ""}
 
-      <h2 class="tc-h">Conformité</h2>
-      <div class="grid g3">${v.frameworks.map((f) => `<div class="card"><div class="fw-card">${f.score != null ? ring(f.score, "prêt", 84, 8) : ""}
-        <div><h3>${esc(f.name)}</h3><span class="pill ${STATE[f.state][1]}">${STATE[f.state][0]}</span><p class="small muted" style="margin-bottom:0">${esc(f.description)}</p></div></div></div>`).join("")}</div>
+      <h2 class="tc-h">Conformité <span>${v.frameworks.length} référentiel${v.frameworks.length > 1 ? "s" : ""}</span></h2>
+      <div class="tc-fw">${v.frameworks.map((f) => `<div>
+        <span class="pill ${STATE[f.state][1]}">${STATE[f.state][0]}</span>
+        <h3 style="font-size:15px;margin-top:14px;min-height:44px">${esc(f.name)}</h3>
+        ${f.score != null ? `<div class="score">${f.score}<span class="muted" style="font-size:14px;font-weight:500"> % prêt</span></div><div class="bar ok"><i style="width:${f.score}%"></i></div>` : ""}
+        <p>${esc(f.description)}</p></div>`).join("")}</div>
 
-      ${v.domains || v.tests ? `<h2 class="tc-h">Mesures de sécurité</h2>
-      <div class="grid g4" style="margin-bottom:16px">
-        ${v.domains ? `<div class="card stat"><div class="k">Mesures en place</div><div class="v">${ok}</div><div class="s">dans ${v.domains.length} domaines de sécurité</div></div>` : ""}
-        ${v.tests ? `<div class="card stat"><div class="k">Contrôles automatisés réussis</div><div class="v">${v.tests.ok}</div><div class="s">vérifiés en continu sur les postes et les comptes</div></div>` : ""}
-      </div>
+      ${v.domains ? `<h2 class="tc-h">Mesures de sécurité en place <span>${ok} mesures · ${v.domains.length} domaines</span></h2>` : ""}
       ${v.domains ? `<div class="grid g3">${v.domains.map((d) => `<div class="card"><div class="card-h"><h3>${esc(d.domain)}</h3><span class="small muted">${d.items.length} en place</span></div>
-        <div class="card-b" style="padding-top:4px">${d.items.map((i) => `<div class="tc-item ok">${icon("check")}<span>${esc(i)}</span></div>`).join("")}</div></div>`).join("")}</div>` : ""}` : ""}
+        <div class="card-b" style="padding-top:4px">${d.items.map((i) => `<div class="tc-item ok">${icon("check")}<span>${esc(i)}</span></div>`).join("")}</div></div>`).join("")}</div>` : ""}
 
       ${v.policies.length ? `<h2 class="tc-h">Documents</h2>
       <div class="card"><div class="list">${v.policies.map((p) => `<div><div class="grow"><b>${esc(p.title)}</b><div class="small muted">${esc(p.summary || "")}</div>
@@ -58,7 +64,7 @@ async function boot() {
       ${!v.access && v.policies.length ? `<div class="card card-b tc-cta"><div><h3 style="margin:0">Besoin de nos politiques de sécurité ?</h3><p class="small muted" style="margin:4px 0 0">Pour un audit fournisseur ou un questionnaire de sécurité, demandez un accès : il est accordé par notre responsable de la sécurité.</p></div>
         <button class="btn primary" data-ask>Demander l’accès</button></div>` : ""}
     </main>
-    <footer class="tc-wrap tc-foot">Données issues en continu du programme de conformité de ${esc(v.org.name)} · Amane GRC</footer>`;
+    <footer class="tc-wrap tc-foot"><span>© ${new Date().getFullYear()} ${esc(v.org.name)}</span><span>Données issues en continu du programme de conformité · Amane GRC</span></footer>`;
 
   root.onclick = async (e) => {
     if (e.target.closest("[data-ask]")) return ask();

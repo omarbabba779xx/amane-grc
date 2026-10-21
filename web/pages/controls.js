@@ -40,7 +40,7 @@ async function openControl(id, ctx, users) {
   c.requirements.forEach((r) => (byFw[r.short] ??= []).push(r));
   const body = `
     <p style="margin-top:0">${esc(c.description)}</p>
-    <div class="card" style="padding:12px 14px;background:#fafaff"><b class="small">Preuves attendues</b><div class="small">${esc(c.evidence_hint)}</div>
+    <div class="card" style="padding:12px 14px;background:var(--sunk)"><b class="small">Preuves attendues</b><div class="small">${esc(c.evidence_hint)}</div>
       <div class="small muted" style="margin-top:4px">Fréquence de revue : ${esc(c.frequency)}</div></div>
 
     <div class="section"><h4>Mise en œuvre</h4>

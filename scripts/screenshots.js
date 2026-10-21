@@ -29,13 +29,16 @@ const SHOTS = [
     ["ebios-atelier1", "#/ebios/1"],
     ["ebios-traitement", "#/ebios/5"],
     ["trust-center-admin", "#/trust-center"],
+    ["palette", "#/", { palette: "chiffrement" }],
+    ["dashboard-sombre", "#/", { theme: "dark" }],
+    ["ebios-sombre", "#/ebios/5", { theme: "dark" }],
   ]],
-  [null, [["trust-center", "/trust", { wait: ".tc-hero" }]]],
+  [null, [["trust-center", "/trust", { wait: ".tc-hero" }], ["connexion", "/#/connexion", { wait: ".auth" }]]],
   ["k.tazi@atlas-demo.test", [["mon-espace", "#/mon-espace"]]],
 ];
 
 (async () => {
-  const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, defaultViewport: { width: 1440, height: 900, deviceScaleFactor: 2 } });
+  const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, args: ["--lang=fr-FR"], defaultViewport: { width: 1440, height: 900, deviceScaleFactor: 2 } });
   for (const [email, pages] of SHOTS) {
     const ctx = await browser.createBrowserContext();
     const page = await ctx.newPage();
@@ -48,8 +51,15 @@ const SHOTS = [
     for (const [name, hash, opt = {}] of pages) {
       if (ONLY && !ONLY.includes(name)) continue;
       await page.goto(`${BASE}${hash.startsWith("/") ? "" : "/"}${hash}`, { waitUntil: "networkidle0" });
+      await page.evaluate((t) => localStorage.setItem("amane-theme", t), opt.theme || "light");
       await page.reload({ waitUntil: "networkidle0" });
       await page.waitForSelector(opt.wait || ".head h1");
+      if (opt.palette) { // command palette open on a search
+        await page.keyboard.down("Control"); await page.keyboard.press("k"); await page.keyboard.up("Control");
+        await page.waitForSelector(".palette .it");
+        await page.type(".palette input", opt.palette);
+      }
+      await page.evaluate(() => document.querySelectorAll("pre.cmd").forEach((el) => { el.textContent = el.textContent.replace(/token=[\w-]+/g, "token=••••••").replace(/^[\w-]{30,}$/, "••••••••••••"); })); // never publish an agent token
       await new Promise((r) => setTimeout(r, 600));
       await page.screenshot({ path: path.join(OUT, `${name}.png`) });
       console.log("docs/" + name + ".png");

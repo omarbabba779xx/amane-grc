@@ -106,7 +106,7 @@ app.get("/api/dashboard", reader, (req, res) => {
 app.get("/api/frameworks", reader, (req, res) => res.json(engine.frameworkScores()));
 app.get("/api/frameworks/:code", reader, (req, res) => {
   const f = engine.frameworkScores().find((x) => x.code === req.params.code);
-  if (!f) return bad(res, "Référentiel introuvable", 404);
+  if (!f) return bad(res, get("SELECT 1 FROM frameworks WHERE code = ?", req.params.code) ? "Ce référentiel n'est pas activé : activez-le dans Paramètres › Référentiels suivis." : "Référentiel introuvable", 404);
   const health = Object.fromEntries(engine.controlsWithHealth().map((c) => [c.id, c]));
   const reqs = all("SELECT * FROM requirements WHERE framework_code = ? ORDER BY id", f.code).map((r) => ({
     ...r,

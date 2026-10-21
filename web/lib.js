@@ -53,6 +53,12 @@ const P = {
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
   book: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/>',
   cloud: '<path d="M7 18.5a4.5 4.5 0 0 1-.6-9 6 6 0 0 1 11.5 1.6A3.8 3.8 0 0 1 17.5 18.5z"/>',
+  search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+  moon: '<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/>',
+  alert: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
   target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
   siren: '<path d="M6.5 18v-5.5a5.5 5.5 0 0 1 11 0V18"/><path d="M4 18h16v2.5H4zM12 3v2M4.2 6.2l1.4 1.4M19.8 6.2l-1.4 1.4"/>',
   globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.4 3.5 5.3 3.5 8.5s-1.1 6.1-3.5 8.5c-2.4-2.4-3.5-5.3-3.5-8.5s1.1-6.1 3.5-8.5z"/>',
@@ -68,13 +74,23 @@ export const HEALTH = {
 export const TEST = { ok: ["Réussi", "ok"], echec: ["En échec", "bad"], en_attente: ["En attente", ""], inconnu: ["Inconnu", "warn"] };
 export const pill = (map, key) => { const [l, c] = map[key] || [key, ""]; return `<span class="pill ${c}">${esc(l)}</span>`; };
 
-export function ring(pct, label = "", size = 112, stroke = 10, color = "url(#rg)") {
+// Score gauge: thin track, flat stroke (no gradients), number in the middle.
+export function ring(pct, label = "", size = 96, stroke = 5, color = "var(--ink)") {
+  size = Math.min(size, 112); stroke = Math.min(stroke, 6);
   const r = (size - stroke) / 2, c = 2 * Math.PI * r, off = c * (1 - Math.min(100, Math.max(0, pct)) / 100);
   return `<div class="ring" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}">
-    <defs><linearGradient id="rg" x1="0" x2="1"><stop offset="0" stop-color="#5b47f0"/><stop offset="1" stop-color="#4fb6ff"/></linearGradient></defs>
-    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="#eceef5" stroke-width="${stroke}"/>
-    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"/></svg>
-    <div class="lbl"><div><b>${Math.round(pct)}%</b><span>${esc(label)}</span></div></div></div>`;
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--mute-soft)" stroke-width="${stroke}"/>
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-dasharray="${c}" stroke-dashoffset="${off}"/></svg>
+    <div class="lbl"><div><b style="font-size:${Math.round(size * 0.22)}px">${Math.round(pct)}<span style="display:inline;font-size:.55em;color:var(--fg-3);margin:0">%</span></b>${label ? `<span>${esc(label)}</span>` : ""}</div></div></div>`;
+}
+
+// Light / dark theme, remembered per browser
+export function theme(set) {
+  let t = set;
+  try { if (set) localStorage.setItem("amane-theme", set); else t = localStorage.getItem("amane-theme"); } catch {}
+  t ||= matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  document.documentElement.dataset.theme = t;
+  return t;
 }
 
 export function toast(msg, bad = false) {

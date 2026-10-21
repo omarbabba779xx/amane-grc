@@ -4,46 +4,57 @@
 
 > « Amane » (أمان) signifie sécurité, confiance.
 
-<p align="center"><img src="docs/dashboard.png" alt="Tableau de bord : score par référentiel, tests en échec, carte des risques" width="100%"></p>
+<p align="center"><img src="docs/dashboard.png" alt="Vue d’ensemble : préparation par référentiel, indicateurs, priorités, carte des risques" width="100%"></p>
 
 ## En images
 
 <table>
   <tr>
+    <td width="50%"><img src="docs/dashboard-sombre.png" alt="Vue d’ensemble en thème sombre"><p align="center"><b>Thème sombre</b> · basculez en un clic, mémorisé par navigateur</p></td>
+    <td width="50%"><img src="docs/palette.png" alt="Palette de commandes"><p align="center"><b>Palette de commandes</b> · <code>Ctrl K</code> / <code>⌘ K</code> pour aller à une page, une mesure, une politique, un risque</p></td>
+  </tr>
+  <tr>
     <td width="50%"><img src="docs/referentiel.png" alt="Référentiel ISO 27001"><p align="center"><b>Référentiels</b> · exigences satisfaites, mesures liées, exclusions justifiées</p></td>
     <td width="50%"><img src="docs/mesure.png" alt="Fiche d’une mesure"><p align="center"><b>Mesures</b> · mise en œuvre, exigences couvertes, tests et preuves</p></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/tests.png" alt="Tests automatisés"><p align="center"><b>Tests automatisés</b> · ce qui échoue, où, et comment le corriger</p></td>
+    <td width="50%"><img src="docs/tests.png" alt="Tests automatisés"><p align="center"><b>Tests automatisés</b> · postes, Microsoft 365, incidents et programme</p></td>
     <td width="50%"><img src="docs/politique.png" alt="Politique et acceptations"><p align="center"><b>Politiques</b> · versions approuvées et acceptation par chacun</p></td>
   </tr>
   <tr>
+    <td width="50%"><img src="docs/ebios-traitement.png" alt="EBIOS RM, atelier 5"><p align="center"><b>EBIOS RM</b> · cartographie, mesures et envoi au registre</p></td>
+    <td width="50%"><img src="docs/ebios-atelier1.png" alt="EBIOS RM, atelier 1"><p align="center"><b>EBIOS RM</b> · cinq ateliers, socle de sécurité calculé</p></td>
+  </tr>
+  <tr>
     <td width="50%"><img src="docs/risques.png" alt="Registre des risques"><p align="center"><b>Risques</b> · cartes inhérente et résiduelle, plan de traitement</p></td>
-    <td width="50%"><img src="docs/registre-0908.png" alt="Registre loi 09-08"><p align="center"><b>Registre 09-08</b> · bases légales, transferts, statut CNDP</p></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="docs/appareils.png" alt="Appareils surveillés"><p align="center"><b>Appareils</b> · 8 contrôles par poste via l’agent Windows</p></td>
-    <td width="50%"><img src="docs/mon-espace.png" alt="Espace collaborateur"><p align="center"><b>Mon espace</b> · les tâches de chaque collaborateur</p></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="docs/integrations.png" alt="Intégration Microsoft 365"><p align="center"><b>Microsoft 365</b> · MFA de chaque compte, administrateurs, accès conditionnel</p></td>
-    <td width="50%"><img src="docs/personnes.png" alt="Personnes"><p align="center"><b>Personnes</b> · politiques, formation, poste et MFA de chacun</p></td>
+    <td width="50%"><img src="docs/incidents.png" alt="Registre des incidents"><p align="center"><b>Incidents</b> · échéance de déclaration DGSSI, violations de données</p></td>
   </tr>
   <tr>
     <td width="50%"><img src="docs/trust-center.png" alt="Trust Center public"><p align="center"><b>Trust Center</b> · page publique mise à jour en continu</p></td>
     <td width="50%"><img src="docs/trust-center-admin.png" alt="Administration du Trust Center"><p align="center"><b>Trust Center</b> · contenu publié et demandes d’accès aux documents</p></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/incidents.png" alt="Registre des incidents"><p align="center"><b>Incidents</b> · échéance de déclaration DGSSI, violations de données</p></td>
-    <td width="50%"><img src="docs/ebios-traitement.png" alt="EBIOS RM, atelier 5"><p align="center"><b>EBIOS RM</b> · cartographie, mesures et envoi au registre</p></td>
+    <td width="50%"><img src="docs/registre-0908.png" alt="Registre loi 09-08"><p align="center"><b>Registre 09-08</b> · bases légales, transferts, statut CNDP</p></td>
+    <td width="50%"><img src="docs/integrations.png" alt="Intégration Microsoft 365"><p align="center"><b>Microsoft 365</b> · MFA de chaque compte, administrateurs, accès conditionnel</p></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/ebios-atelier1.png" alt="EBIOS RM, atelier 1"><p align="center"><b>EBIOS RM</b> · cinq ateliers, socle de sécurité calculé</p></td>
-    <td width="50%"><img src="docs/tests.png" alt="Tests automatisés"><p align="center"><b>Tests</b> · postes, Microsoft 365, incidents et programme</p></td>
+    <td width="50%"><img src="docs/appareils.png" alt="Appareils surveillés"><p align="center"><b>Appareils</b> · 8 contrôles par poste via l’agent Windows</p></td>
+    <td width="50%"><img src="docs/personnes.png" alt="Personnes"><p align="center"><b>Personnes</b> · politiques, formation, poste et MFA de chacun</p></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/mon-espace.png" alt="Espace collaborateur"><p align="center"><b>Mon espace</b> · les tâches de chaque collaborateur</p></td>
+    <td width="50%"><img src="docs/ebios-sombre.png" alt="EBIOS RM en thème sombre"><p align="center"><b>EBIOS RM</b> · thème sombre</p></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/connexion.png" alt="Connexion"><p align="center"><b>Connexion</b></p></td>
   </tr>
 </table>
 
-<sub>Captures réalisées sur l’instance de démonstration (société fictive Atlas Conseil SARL).</sub>
+<sub>Captures réalisées sur l’instance de démonstration (société fictive Atlas Conseil SARL). Les jetons de l’agent sont masqués.</sub>
+
+## Interface
+
+Typographie Geist (police libre, embarquée dans `web/fonts/`, aucun appel à un CDN), surfaces neutres, un seul accent terracotta, thème clair et sombre, palette de commandes `Ctrl K` / `⌘ K`, tableaux denses et lisibles. Aucune bibliothèque d’interface : modules JavaScript natifs.
 
 ## Ce que fait Amane
 
@@ -160,7 +171,8 @@ Dans **Paramètres › Alertes par e-mail**, renseignez votre serveur SMTP (Micr
 | `server/auth.js` | Mots de passe (scrypt), sessions en cookie HttpOnly, contrôle des rôles |
 | `server/content/` | Référentiels, 66 mesures et leurs correspondances, tests, modèles de politiques |
 | `web/trust.html` | Page publique du Trust Center |
-| `web/` | Application web (modules JavaScript, sans framework ni dépendance externe) |
+| `web/` | Application web (modules JavaScript, sans framework ni dépendance externe), `app.css` : système de design clair / sombre |
+| `web/fonts/` | Polices Geist et Geist Mono (licence SIL OFL, `OFL.txt`) |
 | `agent/amane-agent.ps1` | Agent Windows |
 | `scripts/demo.js` | Base de démonstration |
 | `scripts/mock-graph.js` | Microsoft Graph simulé pour tester l'intégration Microsoft 365 |
