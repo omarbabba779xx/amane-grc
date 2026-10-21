@@ -1,7 +1,10 @@
 // Unified control library: one control answers several framework requirements at once.
 // maps: ISO (A.x.y / Cx.y), LOI0908 refs, DNSSI refs · tests: automated test codes · policies: template codes
+// NIST CSF and COBIT correspondences live in maps-extra.js
+const EXTRA = require("./maps-extra");
 const c = (code, domain, title, description, evidence, frequency, iso, l0908, dnssi, tests = [], policies = []) => ({
-  code, domain, title, description, evidence, frequency, maps: { ISO27001: iso, LOI0908: l0908, DNSSI: dnssi }, tests, policies,
+  code, domain, title, description, evidence, frequency, tests, policies,
+  maps: { ISO27001: iso, LOI0908: l0908, DNSSI: dnssi, NIST_CSF: EXTRA[code]?.[0] || [], COBIT: EXTRA[code]?.[1] || [] },
 });
 
 module.exports = [

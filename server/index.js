@@ -116,6 +116,14 @@ app.get("/api/frameworks/:code", reader, (req, res) => {
   }));
   res.json({ ...f, requirements_list: reqs });
 });
+app.get("/api/frameworks-all", reader, (req, res) => res.json(all("SELECT code, name, short, description, enabled FROM frameworks ORDER BY rowid")));
+app.patch("/api/frameworks/:code", admin, (req, res) => {
+  const f = get("SELECT code, name FROM frameworks WHERE code = ?", req.params.code);
+  if (!f) return bad(res, "Référentiel introuvable", 404);
+  run("UPDATE frameworks SET enabled = ? WHERE code = ?", req.body?.enabled ? 1 : 0, f.code);
+  audit(req.user.id, req.body?.enabled ? "référentiel activé" : "référentiel désactivé", "framework", f.code);
+  res.json({ ok: true });
+});
 app.patch("/api/requirements/:id", admin, (req, res) => {
   const { applicable, justification } = req.body || {};
   run("UPDATE requirements SET applicable = ?, justification = ? WHERE id = ?", applicable ? 1 : 0, justification || null, req.params.id);
@@ -127,7 +135,8 @@ app.patch("/api/requirements/:id", admin, (req, res) => {
 app.get("/api/controls", reader, (req, res) => {
   const fw = all(`SELECT cr.control_id, r.framework_code, r.ref FROM control_requirements cr JOIN requirements r ON r.id = cr.requirement_id`);
   const byCtl = {};
-  fw.forEach((x) => ((byCtl[x.control_id] ??= {})[x.framework_code] ??= []).push(x.ref));
+  const on = new Set(all("SELECT code FROM frameworks WHERE enabled = 1").map((f) => f.code));
+  fw.filter((x) => on.has(x.framework_code)).forEach((x) => ((byCtl[x.control_id] ??= {})[x.framework_code] ??= []).push(x.ref));
   res.json(engine.controlsWithHealth().map((c) => ({ ...c, frameworks: byCtl[c.id] || {} })));
 });
 app.get("/api/controls/:id", reader, (req, res) => {

@@ -77,22 +77,35 @@ CREATE TABLE IF NOT EXISTS devices (
 CREATE TABLE IF NOT EXISTS integrations (provider TEXT PRIMARY KEY, config TEXT NOT NULL, status TEXT NOT NULL, message TEXT, details TEXT, last_sync TEXT);
 CREATE TABLE IF NOT EXISTS m365_users (id TEXT PRIMARY KEY, upn TEXT, name TEXT, email TEXT, enabled INTEGER NOT NULL DEFAULT 1, is_admin INTEGER NOT NULL DEFAULT 0,
   admin_roles TEXT, mfa_registered INTEGER NOT NULL DEFAULT 0, methods TEXT, synced_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS incidents (
+  id INTEGER PRIMARY KEY, title TEXT NOT NULL, description TEXT, category TEXT, severity TEXT NOT NULL DEFAULT 'moyenne' CHECK (severity IN ('faible','moyenne','elevee','critique')),
+  status TEXT NOT NULL DEFAULT 'ouvert' CHECK (status IN ('ouvert','en_cours','clos')), detected_at TEXT NOT NULL, occurred_at TEXT, systems TEXT,
+  personal_data INTEGER NOT NULL DEFAULT 0, dgssi_required INTEGER NOT NULL DEFAULT 0, dgssi_notified_at TEXT, dgssi_ref TEXT, cndp_notified_at TEXT,
+  actions TEXT, root_cause TEXT, lessons TEXT, closed_at TEXT, owner_id INTEGER REFERENCES users(id) ON DELETE SET NULL, created_at TEXT NOT NULL, updated_at TEXT);
+CREATE TABLE IF NOT EXISTS ebios (id INTEGER PRIMARY KEY, kind TEXT NOT NULL, data TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT);
+CREATE TABLE IF NOT EXISTS trust_requests (
+  id INTEGER PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, company TEXT, reason TEXT,
+  status TEXT NOT NULL DEFAULT 'en_attente' CHECK (status IN ('en_attente','approuvee','refusee')), token TEXT UNIQUE, expires_at TEXT,
+  decided_by INTEGER REFERENCES users(id) ON DELETE SET NULL, decided_at TEXT, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS notifications (id INTEGER PRIMARY KEY, at TEXT NOT NULL, recipient TEXT NOT NULL, subject TEXT NOT NULL, kind TEXT, status TEXT NOT NULL, error TEXT);
 CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY, at TEXT NOT NULL, user_id INTEGER, action TEXT NOT NULL, entity TEXT, entity_id TEXT, details TEXT);
 `);
 
 // Regulatory content: idempotent, so library updates reach existing installations.
 function loadContent() {
-  const frameworks = [require("./content/iso27001"), require("./content/loi0908"), require("./content/dnssi")];
+  const frameworks = ["iso27001", "loi0908", "dnssi", "nist-csf", "cobit"].map((f) => require(`./content/${f}`));
   const controls = require("./content/controls");
   const tests = require("./content/tests");
   tx(() => {
     for (const f of frameworks) {
-      run(`INSERT INTO frameworks (code, name, short, description) VALUES (?, ?, ?, ?)
-           ON CONFLICT(code) DO UPDATE SET name = excluded.name, short = excluded.short, description = excluded.description`, f.code, f.name, f.short, f.description);
+      // enabled and applicability are only defaults: the user's later choices are kept
+      run(`INSERT INTO frameworks (code, name, short, description, enabled) VALUES (?, ?, ?, ?, ?)
+           ON CONFLICT(code) DO UPDATE SET name = excluded.name, short = excluded.short, description = excluded.description`, f.code, f.name, f.short, f.description, f.enabled ?? 1);
       for (const r of f.requirements) {
-        run(`INSERT INTO requirements (framework_code, ref, section, title, description) VALUES (?, ?, ?, ?, ?)
+        run(`INSERT INTO requirements (framework_code, ref, section, title, description, applicable, justification) VALUES (?, ?, ?, ?, ?, ?, ?)
              ON CONFLICT(framework_code, ref) DO UPDATE SET section = excluded.section, title = excluded.title, description = excluded.description`,
-          f.code, r.ref, r.section, r.title, r.description);
+          f.code, r.ref, r.section, r.title, r.description, r.applicable ?? 1, r.justification || null);
       }
     }
     for (const t of tests) {
@@ -130,6 +143,15 @@ function seedPolicies(orgName, rssiName, ownerId) {
   }
 }
 
+// Key/value settings stored as JSON (alerts, Trust Center, incident deadlines…)
+function setting(key, fallback = {}) {
+  const row = get("SELECT value FROM settings WHERE key = ?", key);
+  return row ? { ...fallback, ...JSON.parse(row.value) } : fallback;
+}
+function saveSetting(key, value) {
+  run("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", key, JSON.stringify(value));
+}
+
 function audit(userId, action, entity = null, entityId = null, details = null) {
   run("INSERT INTO audit_log (at, user_id, action, entity, entity_id, details) VALUES (?, ?, ?, ?, ?, ?)",
     now(), userId, action, entity, entityId == null ? null : String(entityId), details ? JSON.stringify(details) : null);
@@ -137,4 +159,4 @@ function audit(userId, action, entity = null, entityId = null, details = null) {
 
 loadContent();
 
-module.exports = { db, all, get, run, tx, now, audit, seedPolicies, DATA };
+module.exports = { db, all, get, run, tx, now, audit, seedPolicies, setting, saveSetting, DATA };

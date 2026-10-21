@@ -2,7 +2,7 @@ import { api, esc, icon, toast, fail, options, datetime, confirmBox } from "../l
 import { readForm } from "./register.js";
 
 export async function render(main, ctx) {
-  const [org, users, log] = await Promise.all([api("/api/org"), api("/api/users"), api("/api/activity")]);
+  const [org, users, log, fws] = await Promise.all([api("/api/org"), api("/api/users"), api("/api/activity"), api("/api/frameworks-all")]);
   main.innerHTML = `<div class="head"><div><h1>Paramètres</h1><p>Organisme, agent Windows et journal d’activité.</p></div></div>
     <div class="grid g2">
       <div class="card"><div class="card-h"><h3>Organisme</h3></div><div class="card-b"><div class="form cols" id="org">
@@ -17,12 +17,20 @@ export async function render(main, ctx) {
         <pre class="cmd">${esc(org.agent_token)}</pre>
         <button class="btn danger" id="rotate">${icon("refresh")}Renouveler le jeton</button></div></div>
     </div>
+    <div class="card" style="margin-top:16px"><div class="card-h"><h3>Référentiels suivis</h3><span class="muted small">les mesures sont communes : activer un référentiel ne crée pas de travail en double</span></div>
+      <div class="card-b"><div class="list" id="fws">${fws.map((f) => `<div><div class="grow"><b>${esc(f.name)}</b><div class="small muted">${esc(f.description)}</div></div>
+        <label class="check"><input type="checkbox" data-fw="${f.code}" ${f.enabled ? "checked" : ""}> Activé</label></div>`).join("")}</div></div></div>
     <div class="card" style="margin-top:16px"><div class="card-h"><h3>Journal d’activité</h3><span class="muted small">300 derniers événements, conservés pour l’audit</span></div>
       <div class="table-wrap" style="max-height:480px;overflow:auto"><table class="t" style="margin-top:10px"><thead><tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>Objet</th></tr></thead><tbody>
       ${log.map((a) => `<tr><td class="small" style="white-space:nowrap">${datetime(a.at)}</td><td class="small">${esc(a.name || "Système")}</td><td>${esc(a.action)}</td><td class="small muted">${esc([a.entity, a.entity_id].filter(Boolean).join(" #"))}</td></tr>`).join("")}
       </tbody></table></div></div>`;
   document.getElementById("saveOrg").onclick = async () => {
     try { await api("/api/org", { method: "PATCH", body: readForm(document.getElementById("org")) }); toast("Organisme enregistré"); } catch (e) { fail(e); }
+  };
+  document.getElementById("fws").onchange = async (e) => {
+    const b = e.target.closest("[data-fw]");
+    if (!b) return;
+    try { await api(`/api/frameworks/${b.dataset.fw}`, { method: "PATCH", body: { enabled: b.checked } }); toast(b.checked ? "Référentiel activé" : "Référentiel désactivé"); } catch (err) { fail(err); }
   };
   document.getElementById("rotate").onclick = async () => {
     if (!(await confirmBox("Renouveler le jeton ?", "Les agents déjà installés cesseront de remonter des résultats jusqu’à leur réinstallation.", "Renouveler", true))) return;

@@ -6,12 +6,12 @@ export async function render(main, ctx) {
   const [controls, users] = await Promise.all([api("/api/controls"), ctx.user.role === "admin" ? api("/api/users") : Promise.resolve([])]);
   const domains = [...new Set(controls.map((c) => c.domain))];
   const st = { q: "", domain: "", health: "", fw: "" };
-  main.innerHTML = `<div class="head"><div><h1>Mesures</h1><p>${controls.length} mesures unifiées couvrant ISO 27001, la loi 09-08 et la DNSSI. Ouvrez une mesure pour la mettre en œuvre et y déposer vos preuves.</p></div></div>
+  main.innerHTML = `<div class="head"><div><h1>Mesures</h1><p>${controls.length} mesures unifiées couvrant ISO 27001, la loi 09-08, la DNSSI, et en option le NIST CSF et COBIT. Ouvrez une mesure pour la mettre en œuvre et y déposer vos preuves.</p></div></div>
     <div class="toolbar">
       <input class="search" id="q" placeholder="Rechercher (code, intitulé, exigence)…">
       <select class="search" style="min-width:180px" id="domain"><option value="">Tous les domaines</option>${domains.map((d) => `<option>${esc(d)}</option>`).join("")}</select>
       <select class="search" style="min-width:160px" id="health"><option value="">Tous les états</option>${Object.entries(HEALTH).map(([k, [l]]) => `<option value="${k}">${l}</option>`).join("")}</select>
-      <select class="search" style="min-width:170px" id="fw"><option value="">Tous les référentiels</option><option value="ISO27001">ISO 27001</option><option value="LOI0908">Loi 09-08</option><option value="DNSSI">DNSSI / 05-20</option></select>
+      <select class="search" style="min-width:170px" id="fw"><option value="">Tous les référentiels</option><option value="ISO27001">ISO 27001</option><option value="LOI0908">Loi 09-08</option><option value="DNSSI">DNSSI / 05-20</option><option value="NIST_CSF">NIST CSF 2.0</option><option value="COBIT">COBIT 2019</option></select>
       <span class="muted small" id="count"></span></div>
     <div class="card"><div class="table-wrap"><table class="t"><thead><tr><th>Mesure</th><th>Domaine</th><th>Référentiels</th><th>Responsable</th><th>Preuves</th><th>État</th></tr></thead><tbody id="rows"></tbody></table></div></div>`;
 
@@ -22,7 +22,7 @@ export async function render(main, ctx) {
     document.getElementById("rows").innerHTML = rows.map((c) => `<tr class="click" data-id="${c.id}">
       <td class="title"><span class="code">${esc(c.code)}</span><b>${esc(c.title)}</b></td>
       <td class="small">${esc(c.domain)}</td>
-      <td>${Object.entries(c.frameworks).map(([fw, refs]) => `<span class="tag" title="${esc(refs.join(", "))}">${fw === "ISO27001" ? "ISO" : fw === "LOI0908" ? "09-08" : "DNSSI"} · ${refs.length}</span>`).join("")}</td>
+      <td>${Object.entries(c.frameworks).map(([fw, refs]) => `<span class="tag" title="${esc(refs.join(", "))}">${{ ISO27001: "ISO", LOI0908: "09-08", DNSSI: "DNSSI", NIST_CSF: "NIST", COBIT: "COBIT" }[fw] || fw} · ${refs.length}</span>`).join("")}</td>
       <td class="small">${esc(c.owner_name || "—")}</td>
       <td class="small">${c.evidence_count || "—"}${c.test_count ? ` <span class="muted">· ${c.test_count} test${c.test_count > 1 ? "s" : ""}</span>` : ""}</td>
       <td>${pill(HEALTH, c.health)}</td></tr>`).join("") || `<tr><td colspan="6">${empty("list", "Aucune mesure", "Modifiez les filtres.")}</td></tr>`;
