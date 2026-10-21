@@ -4,6 +4,31 @@
 
 > « Amane » (أمان) signifie sécurité, confiance.
 
+<p align="center"><img src="docs/dashboard.png" alt="Tableau de bord : score par référentiel, tests en échec, carte des risques" width="100%"></p>
+
+## En images
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/referentiel.png" alt="Référentiel ISO 27001"><p align="center"><b>Référentiels</b> · exigences satisfaites, mesures liées, exclusions justifiées</p></td>
+    <td width="50%"><img src="docs/mesure.png" alt="Fiche d’une mesure"><p align="center"><b>Mesures</b> · mise en œuvre, exigences couvertes, tests et preuves</p></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/tests.png" alt="Tests automatisés"><p align="center"><b>Tests automatisés</b> · ce qui échoue, où, et comment le corriger</p></td>
+    <td width="50%"><img src="docs/politique.png" alt="Politique et acceptations"><p align="center"><b>Politiques</b> · versions approuvées et acceptation par chacun</p></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/risques.png" alt="Registre des risques"><p align="center"><b>Risques</b> · cartes inhérente et résiduelle, plan de traitement</p></td>
+    <td width="50%"><img src="docs/registre-0908.png" alt="Registre loi 09-08"><p align="center"><b>Registre 09-08</b> · bases légales, transferts, statut CNDP</p></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/appareils.png" alt="Appareils surveillés"><p align="center"><b>Appareils</b> · 8 contrôles par poste via l’agent Windows</p></td>
+    <td width="50%"><img src="docs/mon-espace.png" alt="Espace collaborateur"><p align="center"><b>Mon espace</b> · les tâches de chaque collaborateur</p></td>
+  </tr>
+</table>
+
+<sub>Captures réalisées sur l’instance de démonstration (société fictive Atlas Conseil SARL).</sub>
+
 ## Ce que fait Amane
 
 | Module | Contenu |
@@ -52,7 +77,7 @@ node scripts/demo.js                                   # crée demo-data/ (soci�
 $env:AMANE_DATA = "demo-data"; $env:PORT = 4871; npm start
 ```
 
-Les identifiants de démonstration sont écrits dans `demo-data/IDENTIFIANTS-DEMO.txt`.
+Les identifiants de démonstration sont écrits dans `demo-data/IDENTIFIANTS-DEMO.txt`. Les captures du README se régénèrent avec `npm run screenshots` (instance de démonstration lancée, Chrome ou Edge installé).
 
 ## Agent Windows
 

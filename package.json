@@ -9,12 +9,16 @@
   "scripts": {
     "start": "node --disable-warning=ExperimentalWarning server/index.js",
     "dev": "node --disable-warning=ExperimentalWarning --watch server/index.js",
-    "demo": "node --disable-warning=ExperimentalWarning scripts/demo.js"
+    "demo": "node --disable-warning=ExperimentalWarning scripts/demo.js",
+    "screenshots": "node scripts/screenshots.js"
   },
   "engines": {
     "node": ">=22.13"
   },
   "dependencies": {
     "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^23.11.1"
   }
 }
