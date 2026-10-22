@@ -1,6 +1,11 @@
+<p align="center"><img src="docs/banner.png" alt="Amane GRC : la conformité vérifiée en continu pour les entreprises marocaines" width="100%"></p>
+
 # Amane GRC
 
 [![CI](https://github.com/omarbabba779xx/amane-grc/actions/workflows/ci.yml/badge.svg)](https://github.com/omarbabba779xx/amane-grc/actions/workflows/ci.yml)
+![Node.js 22.13+](https://img.shields.io/badge/Node.js-22.13%2B-1f1f1d)
+![SQLite](https://img.shields.io/badge/stockage-SQLite%20int%C3%A9gr%C3%A9-1f1f1d)
+![Langue](https://img.shields.io/badge/interface-fran%C3%A7ais-b5532c)
 
 **Plateforme de conformité pour les PME marocaines** : ISO 27001:2022, loi 09-08 (CNDP) et DNSSI / loi 05-20, plus NIST CSF 2.0 et COBIT 2019 en option, dans une seule application web : mesures unifiées, tests automatisés sur les postes Windows et Microsoft 365, politiques prêtes à l'emploi, analyse de risques EBIOS RM, registre des incidents avec déclaration à la DGSSI, alertes par e-mail et Trust Center public.
 
@@ -210,6 +215,7 @@ La suite démarre une instance Amane neuve par fichier (base vide dans un dossie
 | `agent/amane-agent.ps1` | Agent Windows |
 | `scripts/demo.js` | Base de démonstration |
 | `tests/` | Tests de bout en bout (`node:test`) |
+| `scripts/banner.js` | Bannière du README (`docs/banner.png`) |
 | `scripts/mock-graph.js` | Microsoft Graph simulé pour tester l'intégration Microsoft 365 |
 
 ## Sécurité de l'application
