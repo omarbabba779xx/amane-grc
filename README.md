@@ -77,6 +77,7 @@ Typographie Geist (police libre, embarquée dans `web/fonts/`, aucun appel à un
 | **Personnes et appareils** | Intégration sécurité de chaque collaborateur (politiques, formation, poste équipé, MFA) et inventaire des postes remonté par l'agent. |
 | **Microsoft 365** | Connexion en lecture seule à Entra ID : méthodes d'authentification de chaque compte, rôles d'administration, paramètres de sécurité par défaut et stratégies d'accès conditionnel. Synchronisation toutes les 6 heures. |
 | **Rapports** | Déclaration d'applicabilité (SoA), registres en CSV et rapport de préparation à l'audit imprimable en PDF. |
+| **Journal infalsifiable** | Chaque action est scellée dans une chaîne HMAC-SHA256 en ajout seul ; vérification d’intégrité en un clic, ancrage quotidien de l’empreinte (envoyé par e-mail), export CSV avec empreintes pour l’auditeur. |
 | **Rôles** | Administrateur (RSSI), collaborateur (son espace : politiques, formation, agent) et auditeur (lecture seule). Journal d'activité. |
 
 ## Démarrage
@@ -159,6 +160,16 @@ Dans **Paramètres › Alertes par e-mail**, renseignez votre serveur SMTP (Micr
 
 **Risques et tiers › Analyse EBIOS RM** suit les cinq ateliers de la méthode de l'ANSSI. Les échelles EBIOS (gravité et vraisemblance de 1 à 4) sont converties sur l'échelle du registre (1 à 5) lorsqu'un scénario opérationnel est envoyé au registre des risques ; un nouvel envoi met à jour le même risque.
 
+## Journal d’activité infalsifiable
+
+Chaque action (connexion, modification d’une mesure, publication d’une politique, décision…) est écrite dans un journal **en ajout seul** :
+
+- chaque entrée porte une empreinte HMAC-SHA256 calculée sur son contenu **et sur l’empreinte de l’entrée précédente**, avec une clé dérivée de la clé secrète du serveur (`data/secret.key` ou `AMANE_SECRET`) : modifier, supprimer ou réordonner une entrée rompt la chaîne, et quelqu’un qui copie la base sans la clé ne peut pas la reconstruire ;
+- des déclencheurs SQLite refusent toute modification ou suppression ;
+- une fois par jour, l’empreinte de la dernière entrée est **ancrée** et envoyée aux administrateurs si les alertes e-mail sont configurées : supprimer les dernières entrées serait alors détecté.
+
+**Paramètres › Intégrité du journal** vérifie toute la chaîne ; le rapport d’audit en indique le résultat et l’empreinte, et **Rapports › Journal d’activité** exporte toutes les entrées avec leurs empreintes. Limite : un attaquant qui possède à la fois la base et la clé du serveur peut réécrire l’historique antérieur au dernier ancrage envoyé hors du serveur ; conservez la clé à part et les e-mails d’empreinte.
+
 ## Tests
 
 ```bash
@@ -174,6 +185,7 @@ La suite démarre une instance Amane neuve par fichier (base vide dans un dossie
 | `server/index.js` | API REST (Express), sessions, rôles, exports, endpoint de l'agent |
 | `server/db.js` | Schéma SQLite (`node:sqlite`) et chargement du contenu réglementaire |
 | `server/engine.js` | Moteur de conformité : tests automatisés, santé des mesures, scores |
+| `server/ledger.js` | Journal d’activité chaîné (HMAC), vérification et ancrages |
 | `server/trust.js` | Trust Center : vue publique, accès aux documents, demandes |
 | `server/mailer.js` | Alertes e-mail (SMTP via Nodemailer), relances et rappels planifiés |
 | `server/ebios.js` | Ateliers EBIOS RM et envoi des scénarios au registre des risques |
@@ -192,7 +204,7 @@ La suite démarre une instance Amane neuve par fichier (base vide dans un dossie
 
 - Mots de passe hachés avec scrypt, 12 caractères minimum, limitation des tentatives de connexion.
 - Sessions par cookie `HttpOnly` et `SameSite=Strict`, en-têtes de sécurité (CSP stricte, anti-iframe).
-- Contrôle des rôles sur chaque route de l'API, journal d'activité.
+- Contrôle des rôles sur chaque route de l'API, journal d'activité chaîné et en ajout seul.
 - Fonctionne hors ligne : aucune donnée n'est envoyée à un service tiers. Seules les fonctions que vous activez sortent du serveur : l'intégration Microsoft 365 (lecture de Microsoft Graph), les alertes (votre serveur SMTP) et le Trust Center (page publique, contenu choisi).
 - Secrets d'intégration chiffrés au repos (AES-256-GCM).
 

@@ -89,8 +89,11 @@ CREATE TABLE IF NOT EXISTS trust_requests (
   status TEXT NOT NULL DEFAULT 'en_attente' CHECK (status IN ('en_attente','approuvee','refusee')), token TEXT UNIQUE, expires_at TEXT,
   decided_by INTEGER REFERENCES users(id) ON DELETE SET NULL, decided_at TEXT, created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS notifications (id INTEGER PRIMARY KEY, at TEXT NOT NULL, recipient TEXT NOT NULL, subject TEXT NOT NULL, kind TEXT, status TEXT NOT NULL, error TEXT);
-CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY, at TEXT NOT NULL, user_id INTEGER, action TEXT NOT NULL, entity TEXT, entity_id TEXT, details TEXT);
+CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY, at TEXT NOT NULL, user_id INTEGER, action TEXT NOT NULL, entity TEXT, entity_id TEXT, details TEXT, prev_hash TEXT, hash TEXT);
 `);
+
+// Databases created before the chained log get its two columns
+if (!all("PRAGMA table_info(audit_log)").some((c) => c.name === "hash")) db.exec("ALTER TABLE audit_log ADD COLUMN prev_hash TEXT; ALTER TABLE audit_log ADD COLUMN hash TEXT;");
 
 // Regulatory content: idempotent, so library updates reach existing installations.
 function loadContent() {
@@ -152,9 +155,9 @@ function saveSetting(key, value) {
   run("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", key, JSON.stringify(value));
 }
 
+// Every action is written to the chained, append-only log (server/ledger.js)
 function audit(userId, action, entity = null, entityId = null, details = null) {
-  run("INSERT INTO audit_log (at, user_id, action, entity, entity_id, details) VALUES (?, ?, ?, ?, ?, ?)",
-    now(), userId, action, entity, entityId == null ? null : String(entityId), details ? JSON.stringify(details) : null);
+  require("./ledger").append(userId, action, entity, entityId, details);
 }
 
 loadContent();

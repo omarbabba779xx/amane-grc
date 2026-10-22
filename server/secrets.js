@@ -27,4 +27,8 @@ function decrypt(blob) {
   return Buffer.concat([d.update(Buffer.from(data, "base64")), d.final()]).toString("utf8");
 }
 
-module.exports = { encrypt, decrypt };
+// Separate key for the activity log HMAC chain, derived from the same secret
+let logKey = null;
+const macKey = () => (logKey ||= crypto.createHmac("sha256", getKey()).update("amane-journal-v1").digest());
+
+module.exports = { encrypt, decrypt, macKey };

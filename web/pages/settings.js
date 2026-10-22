@@ -3,6 +3,7 @@ import { readForm } from "./register.js";
 
 export async function render(main, ctx) {
   const [org, users, log, fws, mail, inc] = await Promise.all([api("/api/org"), api("/api/users"), api("/api/activity"), api("/api/frameworks-all"), api("/api/settings/mail"), api("/api/settings/incidents")]);
+  const integrity = await api("/api/audit/verify");
   const chk = (name, label, hint) => `<div class="field full"><label class="check"><input type="checkbox" name="${name}" ${mail[name] ? "checked" : ""}> ${label}</label>${hint ? `<span class="hint">${hint}</span>` : ""}</div>`;
   main.innerHTML = `<div class="head"><div><h1>Paramètres</h1><p>Organisme, référentiels, alertes par e-mail, agent Windows et journal d’activité.</p></div></div>
     <div class="grid g2">
@@ -45,10 +46,16 @@ export async function render(main, ctx) {
         <div class="list" style="max-height:260px;overflow:auto">${mail.log.map((n) => `<div><div class="grow small"><b>${esc(n.subject)}</b><div class="muted">${esc(n.recipient)} · ${datetime(n.at)}${n.error ? ` · ${esc(n.error)}` : ""}</div></div>
           <span class="pill ${n.status === "envoye" ? "ok" : "bad"}">${n.status === "envoye" ? "Envoyé" : "Erreur"}</span></div>`).join("") || '<div class="muted small">Aucun e-mail envoyé.</div>'}</div></div></div>
     </div>
-    <div class="card" style="margin-top:16px"><div class="card-h"><h3>Journal d’activité</h3><span class="muted small">300 derniers événements, conservés pour l’audit</span></div>
-      <div class="table-wrap" style="max-height:480px;overflow:auto"><table class="t" style="margin-top:10px"><thead><tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>Objet</th></tr></thead><tbody>
-      ${log.map((a) => `<tr><td class="small" style="white-space:nowrap">${datetime(a.at)}</td><td class="small">${esc(a.name || "Système")}</td><td>${esc(a.action)}</td><td class="small muted">${esc([a.entity, a.entity_id].filter(Boolean).join(" #"))}</td></tr>`).join("")}
+    <div class="card" style="margin-top:16px" id="integrity">${integrityCard(integrity)}</div>
+    <div class="card" style="margin-top:16px"><div class="card-h"><h3>Journal d’activité</h3><span class="muted small">300 derniers événements · chaînés et en ajout seul</span>
+        <a class="btn sm" style="margin-left:auto" href="/api/reports/journal.csv">${icon("download")}Exporter tout le journal (CSV)</a></div>
+      <div class="table-wrap" style="max-height:480px;overflow:auto"><table class="t"><thead><tr><th>N°</th><th>Date</th><th>Utilisateur</th><th>Action</th><th>Objet</th><th>Empreinte</th></tr></thead><tbody>
+      ${log.map((a) => `<tr><td class="code">${a.id}</td><td class="small" style="white-space:nowrap">${datetime(a.at)}</td><td class="small">${esc(a.name || "Système")}</td><td>${esc(a.action)}</td><td class="small muted">${esc([a.entity, a.entity_id].filter(Boolean).join(" #"))}</td><td class="code" title="${esc(a.hash || "")}">${esc((a.hash || "").slice(0, 12))}</td></tr>`).join("")}
       </tbody></table></div></div>`;
+  document.getElementById("integrity").onclick = async (e) => {
+    if (!e.target.closest("#verify")) return;
+    try { const r = await api("/api/audit/verify"); document.getElementById("integrity").innerHTML = integrityCard(r); toast(r.ok ? "Journal intègre" : "Altération détectée", !r.ok); } catch (err) { fail(err); }
+  };
   document.getElementById("saveOrg").onclick = async () => {
     try { await api("/api/org", { method: "PATCH", body: readForm(document.getElementById("org")) }); toast("Organisme enregistré"); } catch (e) { fail(e); }
   };
@@ -76,4 +83,22 @@ export async function render(main, ctx) {
     if (!(await confirmBox("Renouveler le jeton ?", "Les agents déjà installés cesseront de remonter des résultats jusqu’à leur réinstallation.", "Renouveler", true))) return;
     try { await api("/api/org/rotate-token", { method: "POST" }); toast("Jeton renouvelé"); ctx.refresh(); } catch (e) { fail(e); }
   };
+}
+
+// Result of the chain verification: entries, head fingerprint, anchors.
+function integrityCard(v) {
+  return `<div class="card-h"><h3>${icon("shield")} Intégrité du journal d’activité</h3>
+      <span class="pill ${v.ok ? "ok" : "bad"}">${v.ok ? "Intègre" : "Altération détectée"}</span>
+      <button class="btn sm" id="verify" style="margin-left:auto">${icon("refresh")}Vérifier maintenant</button></div>
+    <div class="card-b">
+      ${v.ok ? "" : `<p style="margin-top:0;color:var(--bad)"><b>Entrée n° ${v.broken.id} :</b> ${esc(v.broken.reason)}.</p>`}
+      <div class="grid g4">
+        <div><div class="small muted">Entrées vérifiées</div><b style="font-size:18px">${v.entries}</b></div>
+        <div><div class="small muted">Dernière entrée</div><b style="font-size:18px">n° ${v.head?.id ?? "—"}</b></div>
+        <div><div class="small muted">Ancrages quotidiens</div><b style="font-size:18px">${v.anchors}</b>${v.last_anchor ? `<div class="small muted">dernier le ${datetime(v.last_anchor.at)}${v.last_anchor.sent_to ? " · envoyé par e-mail" : ""}</div>` : ""}</div>
+        <div><div class="small muted">Vérifié</div><b style="font-size:14px">${datetime(v.checked_at)}</b></div>
+      </div>
+      ${v.head ? `<div class="small muted" style="margin-top:14px">Empreinte actuelle de la chaîne (HMAC-SHA256)</div><pre class="cmd" style="margin:4px 0 0">${esc(v.head.hash)}</pre>` : ""}
+      <p class="small muted" style="margin-bottom:0">Chaque entrée est scellée avec l’empreinte de la précédente et une clé secrète du serveur : une modification, une suppression ou un réordonnancement rompt la chaîne. La base refuse toute modification du journal, et l’empreinte du jour est conservée (et envoyée aux administrateurs si les alertes e-mail sont configurées).</p>
+    </div>`;
 }

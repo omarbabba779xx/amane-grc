@@ -537,6 +537,28 @@ app.post("/api/org/rotate-token", admin, (req, res) => {
   audit(req.user.id, "jeton de l'agent renouvelé");
   res.json({ ok: true });
 });
+/* ------------------------------------------------------------ activity log integrity */
+const ledger = require("./ledger");
+ledger.seal(); // entries written by older versions or by the demo script
+app.get("/api/audit/verify", reader, (req, res) => res.json(ledger.verify()));
+// Once a day the head of the chain is recorded, and sent to the administrators when alerts are configured:
+// a copy outside the server makes the removal of the latest entries detectable.
+function dailyAnchor() {
+  if (ledger.anchoredToday()) return;
+  const to = mailer.configured() ? all("SELECT email FROM users WHERE role = 'admin' AND active = 1").map((a) => a.email) : [];
+  const h = ledger.anchor(to.join(", ") || null);
+  if (!h) return;
+  for (const email of to) mailer.send(email, `Empreinte du journal d'activité · ${h.at.slice(0, 10)}`,
+    `Empreinte du journal d'activité d'Amane au ${new Date().toLocaleString("fr-FR")} :
+
+Entrée n° ${h.id}
+${h.hash}
+
+Conservez cet e-mail : si des entrées du journal étaient supprimées, cette empreinte ne correspondrait plus et la vérification d'intégrité le signalerait.`, "ancrage").catch(() => {});
+}
+setInterval(dailyAnchor, 3600e3).unref();
+setTimeout(dailyAnchor, 60e3).unref();
+
 app.get("/api/activity", reader, (req, res) => res.json(all(`SELECT a.*, u.name FROM audit_log a LEFT JOIN users u ON u.id = a.user_id ORDER BY a.id DESC LIMIT 300`)));
 
 /* ------------------------------------------------------------ reports */
@@ -562,6 +584,8 @@ app.get("/api/reports/:kind.csv", reader, (req, res) => {
     traitements: [["Traitement", "Finalité", "Base légale", "Catégories de données", "Personnes concernées", "Destinataires", "Données sensibles", "Transfert hors Maroc", "Pays", "Durée de conservation", "Mesures de sécurité", "Statut CNDP", "Référence CNDP"],
       all("SELECT * FROM processing ORDER BY name").map((p) => [p.name, p.purpose, p.legal_basis, p.data_categories, p.data_subjects, p.recipients, p.sensitive ? "Oui" : "Non",
         p.transfer_abroad ? "Oui" : "Non", p.transfer_country, p.retention, p.security_measures, p.cndp_status, p.cndp_ref])],
+    journal: [["N°", "Date (UTC)", "Utilisateur", "Action", "Objet", "Détails", "Empreinte précédente", "Empreinte (HMAC-SHA256)"],
+      all("SELECT a.*, u.name FROM audit_log a LEFT JOIN users u ON u.id = a.user_id ORDER BY a.id").map((a) => [a.id, a.at, a.name || "Système", a.action, [a.entity, a.entity_id].filter(Boolean).join(" #"), a.details, a.prev_hash, a.hash])],
     fournisseurs: [["Fournisseur", "Service", "Criticité", "Accès aux données", "Pays", "Fin de contrat", "Clauses données signées", "Dernière revue", "Contact"],
       all("SELECT * FROM vendors ORDER BY name").map((v) => [v.name, v.service, v.criticality, v.data_access, v.country, v.contract_end, v.dpa_signed ? "Oui" : "Non", v.reviewed_at, v.contact])],
   };
