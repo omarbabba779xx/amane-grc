@@ -6,6 +6,7 @@
 ![Node.js 22.13+](https://img.shields.io/badge/Node.js-22.13%2B-1f1f1d)
 ![SQLite](https://img.shields.io/badge/stockage-SQLite%20int%C3%A9gr%C3%A9-1f1f1d)
 ![Langue](https://img.shields.io/badge/interface-fran%C3%A7ais-b5532c)
+[![Licence MIT](https://img.shields.io/badge/licence-MIT-1f1f1d)](LICENSE)
 
 **Plateforme de conformité pour les PME marocaines** : ISO 27001:2022, loi 09-08 (CNDP) et DNSSI / loi 05-20, plus NIST CSF 2.0 et COBIT 2019 en option, dans une seule application web : mesures unifiées, tests automatisés sur les postes Windows et Microsoft 365, politiques prêtes à l'emploi, analyse de risques EBIOS RM, registre des incidents avec déclaration à la DGSSI, alertes par e-mail et Trust Center public.
 
@@ -74,7 +75,7 @@ Typographie Geist (police libre, embarquée dans `web/fonts/`, aucun appel à un
 | **Référentiels** | ISO 27001:2022 (clauses 4 à 10 + 93 mesures de l'Annexe A), loi 09-08 (16 obligations), DNSSI et loi 05-20 (21 exigences). En option, activables dans Paramètres : NIST CSF 2.0 (22 catégories) et COBIT 2019 (40 objectifs, dont 8 hors périmètre sécurité exclus avec justification). Score de préparation par référentiel, exigences satisfaites, exclusions justifiées. |
 | **Mesures unifiées** | 66 mesures en français, chacune reliée à toutes les exigences qu'elle couvre : avancer sur une mesure fait progresser tous les référentiels. 100 % des exigences sont couvertes. |
 | **Preuves** | Fichiers, liens et notes déposés sur chaque mesure, horodatés et attribués. |
-| **Tests automatisés** | 23 tests en continu : 8 vérifiés sur chaque poste par l'agent Windows (chiffrement, antivirus, pare-feu, mises à jour, verrouillage, version de Windows, droits administrateur, mots de passe), 3 sur Microsoft 365 (MFA de tous les comptes, MFA des administrateurs, MFA imposée au niveau du locataire) et 11 calculés par la plateforme (politiques acceptées, formation, revue des risques, des fournisseurs et des accès, déclarations CNDP, incidents déclarés à la DGSSI, retours d'expérience, accès retirés après la revue…). |
+| **Tests automatisés** | 23 tests en continu : 8 vérifiés sur chaque poste par l'agent Windows (chiffrement, antivirus, pare-feu, mises à jour, verrouillage, version de Windows, droits administrateur, mots de passe), 3 sur Microsoft 365 (MFA de tous les comptes, MFA des administrateurs, MFA imposée au niveau du locataire) et 12 calculés par la plateforme (politiques acceptées, formation, revue des risques, des fournisseurs et des accès, déclarations CNDP, incidents déclarés à la DGSSI, retours d'expérience, accès retirés après la revue…). |
 | **Politiques** | 12 modèles en français (PSSI, contrôle d'accès, charte, sauvegarde, incidents, données personnelles, fournisseurs, actifs, télétravail, développement, continuité, vulnérabilités), versionnés, approuvés et acceptés par chaque collaborateur. |
 | **Risques** | Registre avec cartographie inhérente et résiduelle (5 × 5), plan de traitement, mesures associées et bibliothèque de 10 risques types de PME. |
 | **EBIOS RM** | Analyse de risques selon la méthode de l'ANSSI en cinq ateliers : valeurs métier, biens supports, événements redoutés et socle de sécurité (calculé depuis les référentiels), couples source de risque / objectif visé, parties prenantes et menace, scénarios stratégiques et opérationnels, cartographie gravité × vraisemblance. Les scénarios retenus sont envoyés au registre des risques avec leurs mesures. |
@@ -229,3 +230,7 @@ La suite démarre une instance Amane neuve par fichier (base vide dans un dossie
 ## Avertissement
 
 Les textes des exigences sont des **reformulations** destinées au pilotage, pas les textes officiels : la norme ISO/IEC 27001 est protégée par le droit d'auteur, et les références aux articles de la loi 09-08, de la DNSSI et de la loi 05-20 sont indicatives. Faites valider votre déclaration d'applicabilité et vos obligations réglementaires par votre auditeur ou votre conseil juridique.
+
+## Licence
+
+Amane GRC est distribué sous [licence MIT](LICENSE) : vous pouvez l’utiliser, le modifier et le redistribuer, y compris à titre commercial, en conservant la mention de copyright. Les polices Geist et Geist Mono sont sous licence SIL OFL 1.1 (`web/fonts/OFL.txt`).
