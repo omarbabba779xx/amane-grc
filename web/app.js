@@ -7,6 +7,7 @@ const ROUTES = [
   [/^\/referentiels(?:\/([\w-]+))?$/, "frameworks", "frameworks", ["admin", "auditeur"]],
   [/^\/mesures(?:\/(\d+))?$/, "controls", "controls", ["admin", "auditeur"]],
   [/^\/tests$/, "tests", "tests", ["admin", "auditeur"]],
+  [/^\/revues-acces(?:\/(\d+))?$/, "access-reviews", "access", ["admin", "auditeur", "membre"]],
   [/^\/politiques(?:\/(\d+))?$/, "policies", "policies", ["admin", "auditeur", "membre"]],
   [/^\/risques$/, "risks", "risks", ["admin", "auditeur"]],
   [/^\/ebios(?:\/(\d))?$/, "ebios", "ebios", ["admin", "auditeur"]],
@@ -23,7 +24,7 @@ const ROUTES = [
 ];
 const NAV = [
   [null, [["dashboard", "#/", "Vue d’ensemble", "dashboard"], ["me", "#/mon-espace", "Mon espace", "home"]]],
-  ["Conformité", [["frameworks", "#/referentiels", "Référentiels", "shield"], ["controls", "#/mesures", "Mesures", "list"], ["tests", "#/tests", "Tests automatisés", "pulse"], ["policies", "#/politiques", "Politiques", "doc"]]],
+  ["Conformité", [["frameworks", "#/referentiels", "Référentiels", "shield"], ["controls", "#/mesures", "Mesures", "list"], ["tests", "#/tests", "Tests automatisés", "pulse"], ["access", "#/revues-acces", "Revue des accès", "key"], ["policies", "#/politiques", "Politiques", "doc"]]],
   ["Risques et tiers", [["risks", "#/risques", "Risques", "risk"], ["ebios", "#/ebios", "Analyse EBIOS RM", "target"], ["incidents", "#/incidents", "Incidents", "siren"], ["vendors", "#/fournisseurs", "Fournisseurs", "vendor"]]],
   ["Données personnelles", [["processing", "#/traitements", "Registre 09-08", "data"]]],
   ["Organisation", [["people", "#/personnes", "Personnes", "people"], ["devices", "#/appareils", "Appareils", "laptop"], ["integrations", "#/integrations", "Intégrations", "cloud"], ["trust", "#/trust-center", "Trust Center", "globe"]]],

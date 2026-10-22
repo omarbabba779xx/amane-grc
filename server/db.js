@@ -88,6 +88,14 @@ CREATE TABLE IF NOT EXISTS trust_requests (
   id INTEGER PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, company TEXT, reason TEXT,
   status TEXT NOT NULL DEFAULT 'en_attente' CHECK (status IN ('en_attente','approuvee','refusee')), token TEXT UNIQUE, expires_at TEXT,
   decided_by INTEGER REFERENCES users(id) ON DELETE SET NULL, decided_at TEXT, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS access_reviews (
+  id INTEGER PRIMARY KEY, title TEXT NOT NULL, scope TEXT NOT NULL CHECK (scope IN ('m365','amane')), status TEXT NOT NULL CHECK (status IN ('en_cours','cloturee')),
+  due_date TEXT, created_by INTEGER REFERENCES users(id) ON DELETE SET NULL, created_at TEXT NOT NULL, closed_by INTEGER REFERENCES users(id) ON DELETE SET NULL, closed_at TEXT, evidence_id INTEGER);
+CREATE TABLE IF NOT EXISTS access_review_items (
+  id INTEGER PRIMARY KEY, review_id INTEGER NOT NULL REFERENCES access_reviews(id), account_key TEXT NOT NULL, name TEXT, upn TEXT, enabled INTEGER NOT NULL DEFAULT 1,
+  is_admin INTEGER NOT NULL DEFAULT 0, admin_roles TEXT, mfa INTEGER, reviewer_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  decision TEXT NOT NULL DEFAULT 'en_attente' CHECK (decision IN ('en_attente','conserver','modifier','retirer')), comment TEXT,
+  decided_by INTEGER REFERENCES users(id) ON DELETE SET NULL, decided_at TEXT, remediated INTEGER NOT NULL DEFAULT 0, remediated_at TEXT);
 CREATE TABLE IF NOT EXISTS notifications (id INTEGER PRIMARY KEY, at TEXT NOT NULL, recipient TEXT NOT NULL, subject TEXT NOT NULL, kind TEXT, status TEXT NOT NULL, error TEXT);
 CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY, at TEXT NOT NULL, user_id INTEGER, action TEXT NOT NULL, entity TEXT, entity_id TEXT, details TEXT, prev_hash TEXT, hash TEXT);
 `);

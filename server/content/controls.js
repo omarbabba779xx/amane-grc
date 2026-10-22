@@ -76,7 +76,7 @@ module.exports = [
   c("IAM-04", "Accès", "Comptes à privilèges", "Limiter et tracer les comptes administrateurs, séparer usage quotidien et administration.", "Liste des administrateurs, journaux.", "Trimestrielle",
     ["A.8.2", "A.8.18", "A.5.3"], [], ["ACC-1"], ["T-ADMIN", "T-M365-ADMIN-MFA"]),
   c("IAM-05", "Accès", "Revue périodique des droits", "Revoir au moins deux fois par an les droits sur les applications et données sensibles.", "Comptes rendus de revue signés.", "Semestrielle",
-    ["A.5.18"], ["S-1"], ["ACC-1"], ["T-ACCESS-REVIEW"]),
+    ["A.5.18"], ["S-1"], ["ACC-1"], ["T-ACCESS-REVIEW", "T-ACCESS-REMEDIATION"]),
   c("IAM-06", "Accès", "Accès au code source", "Restreindre et tracer l'accès aux dépôts de code et aux secrets.", "Paramètres des dépôts, liste des accès.", "Trimestrielle",
     ["A.8.4"], [], ["DEV-1"]),
   // Terminaux

@@ -29,6 +29,8 @@ const SHOTS = [
     ["ebios-atelier1", "#/ebios/1"],
     ["ebios-traitement", "#/ebios/5"],
     ["trust-center-admin", "#/trust-center"],
+    ["revue-acces", "#/revues-acces/2"],
+    ["integrite-journal", "#/parametres", { element: "#integrity" }],
     ["palette", "#/", { palette: "chiffrement" }],
     ["dashboard-sombre", "#/", { theme: "dark" }],
     ["ebios-sombre", "#/ebios/5", { theme: "dark" }],
@@ -59,9 +61,10 @@ const SHOTS = [
         await page.waitForSelector(".palette .it");
         await page.type(".palette input", opt.palette);
       }
-      await page.evaluate(() => document.querySelectorAll("pre.cmd").forEach((el) => { el.textContent = el.textContent.replace(/token=[\w-]+/g, "token=••••••").replace(/^[\w-]{30,}$/, "••••••••••••"); })); // never publish an agent token
+      await page.evaluate(() => document.querySelectorAll("pre.cmd").forEach((el) => { el.textContent = el.textContent.replace(/token=[\w-]+/g, "token=••••••").replace(/^[\w-]{30,40}$/, "••••••••••••"); })); // never publish an agent token (log fingerprints are 64 hex characters and stay)
       await new Promise((r) => setTimeout(r, 600));
-      await page.screenshot({ path: path.join(OUT, `${name}.png`) });
+      if (opt.element) await (await page.$(opt.element)).screenshot({ path: path.join(OUT, `${name}.png`) }); // one card only
+      else await page.screenshot({ path: path.join(OUT, `${name}.png`) });
       console.log("docs/" + name + ".png");
     }
     await ctx.close();

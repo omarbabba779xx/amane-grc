@@ -68,7 +68,6 @@ tx(() => {
     ["GOV-01", "note", "PSSI v1 approuvée en comité de direction", "Compte rendu du comité de direction du 12/08 : PSSI approuvée à l'unanimité."],
     ["GOV-02", "note", "Note de nomination du RSSI", "Note de service DG-2026-014 désignant Salma Idrissi RSSI."],
     ["IAM-03", "lien", "Microsoft 365 · MFA obligatoire (accès conditionnel)", null, "https://entra.microsoft.com/"],
-    ["IAM-05", "note", "Revue des accès semestrielle · septembre", "Revue des droits Sage, Microsoft 365 et serveur de fichiers : 3 comptes désactivés."],
     ["OPS-01", "note", "Test de restauration trimestriel", "Restauration complète du serveur de fichiers en 2 h 10 (RTO cible : 4 h)."],
     ["PRV-02", "note", "Récépissés CNDP", "Récépissés de déclaration D-RH-2025-xxx et D-CLI-2025-xxx."],
     ["INC-01", "note", "Exercice de gestion de crise", "Simulation d'hameçonnage ciblé, 9 juin : 2 clics, procédure suivie."],
@@ -181,6 +180,33 @@ tx(() => {
     mode: "Page de connexion Microsoft contrefaite, vol de jeton de session, création de règles de transfert et téléchargement des dossiers SharePoint." });
   mk("operationnel", { strategique_id: sVol, vraisemblance: 1, decision: "accepter", mesures: [ctlId("END-01")], mode: "Vol d'un portable non chiffré contenant des copies locales de dossiers." });
   ebios.toRisk(o1); ebios.toRisk(o2);
+}
+
+// Access reviews: last quarter's campaign (closed, evidence on IAM-05) and the current one, in progress
+{
+  const reviews = require("../server/access-reviews");
+  const user = (email) => get("SELECT id, name, role FROM users WHERE email = ?", email);
+  const rssi = user("rssi@atlas-demo.test"), karim = user("k.tazi@atlas-demo.test");
+  const item = (rid, email) => get("SELECT id FROM access_review_items WHERE review_id = ? AND upn = ?", rid, email).id;
+
+  const past = reviews.create({ title: "Revue des accès T3 2026", scope: "amane", due_date: day(50).slice(0, 10) }, rssi.id);
+  for (const i of all("SELECT id, upn FROM access_review_items WHERE review_id = ?", past)) {
+    const external = i.upn === "audit@cabinet-demo.test";
+    reviews.decide(i.id, external ? { decision: "modifier", comment: "Limiter l'accès de l'auditeur externe à la durée de la mission" } : { decision: "conserver" }, rssi);
+  }
+  reviews.close(past, rssi);
+  reviews.remediate(item(past, "audit@cabinet-demo.test"), true);
+  run("UPDATE access_reviews SET created_at = ?, closed_at = ? WHERE id = ?", day(62), day(45), past);
+  run("UPDATE access_review_items SET decided_at = ? WHERE review_id = ?", day(48), past);
+  run("UPDATE evidence SET created_at = ? WHERE id = (SELECT evidence_id FROM access_reviews WHERE id = ?)", day(45), past);
+
+  const now = reviews.create({ title: "Revue des accès T4 2026", scope: "amane", due_date: day(-9).slice(0, 10) }, rssi.id);
+  reviews.assign(now, ["h.elfassi@atlas-demo.test", "n.amrani@atlas-demo.test", "k.tazi@atlas-demo.test"].map((e) => item(now, e)), karim.id);
+  reviews.decide(item(now, "y.benali@atlas-demo.test"), { decision: "conserver" }, rssi);
+  reviews.decide(item(now, "rssi@atlas-demo.test"), { decision: "conserver" }, rssi);
+  reviews.decide(item(now, "o.chraibi@atlas-demo.test"), { decision: "modifier", comment: "Retirer les droits d'administrateur local sur ATLAS-SRV-ADM : utiliser le compte d'administration dédié" }, rssi);
+  reviews.decide(item(now, "n.amrani@atlas-demo.test"), { decision: "conserver" }, karim);
+  run("UPDATE access_reviews SET created_at = ? WHERE id = ?", day(5), now);
 }
 engine.runTests();
 fs.writeFileSync(path.join(DIR, "IDENTIFIANTS-DEMO.txt"), `Instance de démonstration Amane (Atlas Conseil SARL, société fictive)

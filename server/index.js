@@ -97,6 +97,8 @@ app.get("/api/dashboard", reader, (req, res) => {
     people: get("SELECT COUNT(*) AS n FROM users WHERE active = 1 AND role != 'auditeur'").n,
     devices: get("SELECT COUNT(*) AS n FROM devices").n,
     processing: get("SELECT COUNT(*) AS n FROM processing").n,
+    access_reviews: get(`SELECT COUNT(*) AS open, SUM(due_date < ?) AS overdue, (SELECT COUNT(*) FROM access_review_items i JOIN access_reviews r2 ON r2.id = i.review_id
+      WHERE r2.status = 'en_cours' AND i.decision = 'en_attente') AS pending FROM access_reviews WHERE status = 'en_cours'`, today),
     incidents: { open: get("SELECT COUNT(*) AS n FROM incidents WHERE status != 'clos'").n, to_declare: get("SELECT COUNT(*) AS n FROM incidents WHERE dgssi_required = 1 AND dgssi_notified_at IS NULL").n },
     activity: all(`SELECT a.at, a.action, a.entity, a.entity_id, u.name FROM audit_log a LEFT JOIN users u ON u.id = a.user_id ORDER BY a.id DESC LIMIT 12`),
   });
@@ -366,6 +368,7 @@ app.get("/api/me/tasks", anyUser, (req, res) => {
     training_at: me.training_at,
     devices: all("SELECT hostname, os, last_seen, results FROM devices WHERE user_id = ?", req.user.id).map((d) => ({ ...d, results: JSON.parse(d.results || "{}") })),
     agent_url: `/agent/install.ps1?token=${org().agent_token}&email=${encodeURIComponent(req.user.email)}`,
+    access_reviews: require("./access-reviews").pendingFor(req.user.id),
   });
 });
 
@@ -523,6 +526,58 @@ app.post("/api/ebios/:id/to-risk", admin, (req, res) => {
   try { const id = ebios.toRisk(Number(req.params.id)); audit(req.user.id, "EBIOS RM : risque envoyé au registre", "risks", id); engine.runTests(); res.json({ ok: true, risk_id: id }); }
   catch (e) { bad(res, e.message); }
 });
+
+/* ------------------------------------------------------------ access reviews (IAM-05) */
+const reviews = require("./access-reviews");
+const handle = (res, fn) => { try { return fn(); } catch (e) { return bad(res, e.message, e.status || 400); } };
+app.get("/api/access-reviews", anyUser, (req, res) => res.json(reviews.list(req.user)));
+app.post("/api/access-reviews", admin, (req, res) => handle(res, () => {
+  const id = reviews.create(req.body || {}, req.user.id);
+  audit(req.user.id, "revue des accès lancée", "access_review", id, { title: req.body.title, scope: req.body.scope });
+  if (mailer.configured()) {
+    const r = reviews.detail(id, req.user);
+    const by = new Map();
+    for (const i of r.items) if (i.reviewer_id) by.set(i.reviewer_id, (by.get(i.reviewer_id) || 0) + 1);
+    for (const [uid, n] of by) {
+      const u = get("SELECT name, email FROM users WHERE id = ?", uid);
+      mailer.send(u.email, `Revue des accès à réaliser : ${r.title}`, `Bonjour ${u.name},
+
+${n} compte(s) vous sont confiés dans la revue des accès « ${r.title} »${r.due_date ? `, à terminer avant le ${new Date(r.due_date).toLocaleDateString("fr-FR")}` : ""}.
+
+Pour chaque compte, indiquez s'il faut conserver, modifier ou retirer l'accès.${mailer.view().base_url ? `
+
+${mailer.view().base_url}/#/revues-acces/${id}` : ""}`, "revue").catch(() => {});
+    }
+  }
+  res.json({ ok: true, id });
+}));
+app.get("/api/access-reviews/:id", anyUser, (req, res) => handle(res, () => res.json(reviews.detail(Number(req.params.id), req.user))));
+app.get("/api/access-reviews/:id/export.csv", reader, (req, res) => handle(res, () => {
+  const f = reviews.csv(Number(req.params.id));
+  res.set({ "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="${f.name}"` }).send(f.body);
+}));
+app.patch("/api/access-reviews/items/:itemId", anyUser, (req, res) => handle(res, () => {
+  const i = reviews.decide(Number(req.params.itemId), req.body || {}, req.user);
+  audit(req.user.id, `revue des accès : ${req.body.decision}`, "access_review", i.review_id, { compte: i.upn, commentaire: req.body.comment || undefined });
+  res.json({ ok: true });
+}));
+app.post("/api/access-reviews/:id/assign", admin, (req, res) => handle(res, () => {
+  const r = reviews.assign(Number(req.params.id), req.body?.item_ids, Number(req.body?.reviewer_id));
+  audit(req.user.id, "revue des accès : comptes réassignés", "access_review", req.params.id, { reviseur: r.reviewer.name, comptes: r.count });
+  res.json({ ok: true, count: r.count });
+}));
+app.patch("/api/access-reviews/items/:itemId/remediation", admin, (req, res) => handle(res, () => {
+  reviews.remediate(Number(req.params.itemId), !!req.body?.remediated);
+  audit(req.user.id, req.body?.remediated ? "revue des accès : correction faite" : "revue des accès : correction annulée", "access_review_item", req.params.itemId);
+  engine.runTests();
+  res.json({ ok: true });
+}));
+app.post("/api/access-reviews/:id/close", admin, (req, res) => handle(res, () => {
+  const r = reviews.close(Number(req.params.id), req.user);
+  audit(req.user.id, "revue des accès clôturée", "access_review", req.params.id, r);
+  engine.runTests();
+  res.json({ ok: true, ...r });
+}));
 
 /* ------------------------------------------------------------ organisation */
 app.get("/api/org", reader, (req, res) => { const o = org(); res.json({ ...o, agent_token: req.user.role === "admin" ? o.agent_token : undefined }); });

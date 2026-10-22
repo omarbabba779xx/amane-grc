@@ -79,6 +79,8 @@ function weeklyReminders() {
     if (!u.training_at || Date.now() - new Date(u.training_at) > 365 * 864e5) todo.push("• Suivre la formation de sensibilisation à la sécurité (à faire ou à renouveler)");
     const dev = get("SELECT MAX(last_seen) AS seen FROM devices WHERE user_id = ?", u.id);
     if (!dev?.seen || Date.now() - new Date(dev.seen) > 7 * 864e5) todo.push("• Installer l'agent Amane sur votre ordinateur (commande dans Mon espace)");
+    const reviews = require("./access-reviews").pendingFor(u.id);
+    if (reviews.length) todo.push(`• Revoir ${reviews.length} accès dans la revue « ${reviews[0].title} »`);
     if (!todo.length) continue;
     quiet(send(u.email, "Vos actions de sécurité de la semaine", `Bonjour ${u.name},\n\nIl vous reste ${todo.length} action(s) pour le programme de sécurité :\n\n${todo.join("\n")}\n\nTout se fait depuis Mon espace, en quelques minutes.${link("#/mon-espace")}`, "relance"));
     sent++;

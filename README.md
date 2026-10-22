@@ -16,6 +16,10 @@
     <td width="50%"><img src="docs/palette.png" alt="Palette de commandes"><p align="center"><b>Palette de commandes</b> · <code>Ctrl K</code> / <code>⌘ K</code> pour aller à une page, une mesure, une politique, un risque</p></td>
   </tr>
   <tr>
+    <td width="50%"><img src="docs/revue-acces.png" alt="Revue des accès"><p align="center"><b>Revue des accès</b> · conserver, modifier ou retirer chaque compte, preuve IAM-05 à la clôture</p></td>
+    <td width="50%"><img src="docs/integrite-journal.png" alt="Intégrité du journal"><p align="center"><b>Journal infalsifiable</b> · chaîne HMAC vérifiée en un clic</p></td>
+  </tr>
+  <tr>
     <td width="50%"><img src="docs/referentiel.png" alt="Référentiel ISO 27001"><p align="center"><b>Référentiels</b> · exigences satisfaites, mesures liées, exclusions justifiées</p></td>
     <td width="50%"><img src="docs/mesure.png" alt="Fiche d’une mesure"><p align="center"><b>Mesures</b> · mise en œuvre, exigences couvertes, tests et preuves</p></td>
   </tr>
@@ -65,7 +69,7 @@ Typographie Geist (police libre, embarquée dans `web/fonts/`, aucun appel à un
 | **Référentiels** | ISO 27001:2022 (clauses 4 à 10 + 93 mesures de l'Annexe A), loi 09-08 (16 obligations), DNSSI et loi 05-20 (21 exigences). En option, activables dans Paramètres : NIST CSF 2.0 (22 catégories) et COBIT 2019 (40 objectifs, dont 8 hors périmètre sécurité exclus avec justification). Score de préparation par référentiel, exigences satisfaites, exclusions justifiées. |
 | **Mesures unifiées** | 66 mesures en français, chacune reliée à toutes les exigences qu'elle couvre : avancer sur une mesure fait progresser tous les référentiels. 100 % des exigences sont couvertes. |
 | **Preuves** | Fichiers, liens et notes déposés sur chaque mesure, horodatés et attribués. |
-| **Tests automatisés** | 22 tests en continu : 8 vérifiés sur chaque poste par l'agent Windows (chiffrement, antivirus, pare-feu, mises à jour, verrouillage, version de Windows, droits administrateur, mots de passe), 3 sur Microsoft 365 (MFA de tous les comptes, MFA des administrateurs, MFA imposée au niveau du locataire) et 11 calculés par la plateforme (politiques acceptées, formation, revue des risques, des fournisseurs et des accès, déclarations CNDP, incidents déclarés à la DGSSI, retours d'expérience…). |
+| **Tests automatisés** | 23 tests en continu : 8 vérifiés sur chaque poste par l'agent Windows (chiffrement, antivirus, pare-feu, mises à jour, verrouillage, version de Windows, droits administrateur, mots de passe), 3 sur Microsoft 365 (MFA de tous les comptes, MFA des administrateurs, MFA imposée au niveau du locataire) et 11 calculés par la plateforme (politiques acceptées, formation, revue des risques, des fournisseurs et des accès, déclarations CNDP, incidents déclarés à la DGSSI, retours d'expérience, accès retirés après la revue…). |
 | **Politiques** | 12 modèles en français (PSSI, contrôle d'accès, charte, sauvegarde, incidents, données personnelles, fournisseurs, actifs, télétravail, développement, continuité, vulnérabilités), versionnés, approuvés et acceptés par chaque collaborateur. |
 | **Risques** | Registre avec cartographie inhérente et résiduelle (5 × 5), plan de traitement, mesures associées et bibliothèque de 10 risques types de PME. |
 | **EBIOS RM** | Analyse de risques selon la méthode de l'ANSSI en cinq ateliers : valeurs métier, biens supports, événements redoutés et socle de sécurité (calculé depuis les référentiels), couples source de risque / objectif visé, parties prenantes et menace, scénarios stratégiques et opérationnels, cartographie gravité × vraisemblance. Les scénarios retenus sont envoyés au registre des risques avec leurs mesures. |
@@ -77,6 +81,7 @@ Typographie Geist (police libre, embarquée dans `web/fonts/`, aucun appel à un
 | **Personnes et appareils** | Intégration sécurité de chaque collaborateur (politiques, formation, poste équipé, MFA) et inventaire des postes remonté par l'agent. |
 | **Microsoft 365** | Connexion en lecture seule à Entra ID : méthodes d'authentification de chaque compte, rôles d'administration, paramètres de sécurité par défaut et stratégies d'accès conditionnel. Synchronisation toutes les 6 heures. |
 | **Rapports** | Déclaration d'applicabilité (SoA), registres en CSV et rapport de préparation à l'audit imprimable en PDF. |
+| **Revue des accès** | Campagnes sur les comptes Microsoft 365 (ou Amane) : chaque responsable conserve, modifie ou retire chaque accès depuis son espace ; la clôture dépose la preuve sur la mesure IAM-05 et un test vérifie que les retraits ont été faits. |
 | **Journal infalsifiable** | Chaque action est scellée dans une chaîne HMAC-SHA256 en ajout seul ; vérification d’intégrité en un clic, ancrage quotidien de l’empreinte (envoyé par e-mail), export CSV avec empreintes pour l’auditeur. |
 | **Rôles** | Administrateur (RSSI), collaborateur (son espace : politiques, formation, agent) et auditeur (lecture seule). Journal d'activité. |
 
@@ -160,6 +165,12 @@ Dans **Paramètres › Alertes par e-mail**, renseignez votre serveur SMTP (Micr
 
 **Risques et tiers › Analyse EBIOS RM** suit les cinq ateliers de la méthode de l'ANSSI. Les échelles EBIOS (gravité et vraisemblance de 1 à 4) sont converties sur l'échelle du registre (1 à 5) lorsqu'un scénario opérationnel est envoyé au registre des risques ; un nouvel envoi met à jour le même risque.
 
+## Revue des accès
+
+**Conformité › Revue des accès › Nouvelle campagne** fige la liste des comptes Microsoft 365 synchronisés (ou des comptes Amane si Microsoft 365 n’est pas connecté) avec leurs rôles d’administration et leur MFA. L’administrateur confie les comptes aux responsables concernés (jamais à un auditeur, qui reste indépendant) ; chacun décide dans **Mon espace** : conserver, modifier ou retirer, avec une précision obligatoire pour toute correction. Les réviseurs sont prévenus par e-mail et relancés chaque lundi.
+
+Quand tous les comptes sont revus, la clôture fige la campagne et dépose le compte rendu (CSV) comme preuve de la mesure **IAM-05** : le test *Revue des accès réalisée* passe au vert. Le test *Accès retirés après la revue* reste en échec tant que l’administrateur n’a pas confirmé chaque correction.
+
 ## Journal d’activité infalsifiable
 
 Chaque action (connexion, modification d’une mesure, publication d’une politique, décision…) est écrite dans un journal **en ajout seul** :
@@ -185,6 +196,7 @@ La suite démarre une instance Amane neuve par fichier (base vide dans un dossie
 | `server/index.js` | API REST (Express), sessions, rôles, exports, endpoint de l'agent |
 | `server/db.js` | Schéma SQLite (`node:sqlite`) et chargement du contenu réglementaire |
 | `server/engine.js` | Moteur de conformité : tests automatisés, santé des mesures, scores |
+| `server/access-reviews.js` | Campagnes de revue des accès, décisions, clôture et preuve IAM-05 |
 | `server/ledger.js` | Journal d’activité chaîné (HMAC), vérification et ancrages |
 | `server/trust.js` | Trust Center : vue publique, accès aux documents, demandes |
 | `server/mailer.js` | Alertes e-mail (SMTP via Nodemailer), relances et rappels planifiés |

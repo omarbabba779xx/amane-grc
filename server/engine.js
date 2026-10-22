@@ -85,6 +85,14 @@ const PLATFORM = {
     const failing = inc.filter((i) => !i.root_cause || !i.lessons).map((i) => ({ name: i.title, info: "cause ou retour d'expérience manquant" }));
     return { status: failing.length ? "echec" : "ok", details: { total: inc.length, failing } };
   },
+  "T-ACCESS-REMEDIATION": () => {
+    const r = get("SELECT id, title FROM access_reviews WHERE status = 'cloturee' ORDER BY closed_at DESC LIMIT 1");
+    if (!r) return { status: "en_attente", details: { message: "Aucune campagne de revue des accès clôturée." } };
+    const todo = all("SELECT name, upn, decision FROM access_review_items WHERE review_id = ? AND decision IN ('retirer', 'modifier')", r.id);
+    const failing = all("SELECT name, upn, decision FROM access_review_items WHERE review_id = ? AND decision IN ('retirer', 'modifier') AND remediated = 0", r.id)
+      .map((i) => ({ name: i.name, info: `${i.decision === "retirer" ? "accès à retirer" : "accès à modifier"} · ${i.upn}` }));
+    return { status: failing.length ? "echec" : "ok", details: failing.length ? { total: todo.length, failing } : { message: `« ${r.title} » : ${todo.length} correction(s), toutes faites.` } };
+  },
   "T-0908-REG": () => {
     const ps = all("SELECT name, purpose, legal_basis, retention FROM processing");
     if (!ps.length) return { status: "echec", details: { message: "Le registre des traitements est vide." } };

@@ -1,13 +1,20 @@
 import { api, esc, icon, toast, date, ago } from "../lib.js";
 import { CHECKS, agentCommand } from "./devices.js";
+import { decisionButtons, wireDecisions } from "./access-reviews.js";
 
 export async function render(main, ctx) {
   const t = await api("/api/me/tasks");
   const pending = t.policies.filter((p) => !p.accepted);
   const trained = t.training_at && Date.now() - new Date(t.training_at) < 365 * 864e5;
+  const reviews = t.access_reviews || [];
   const total = t.policies.length + 2, done = t.policies.length - pending.length + (trained ? 1 : 0) + (t.devices.length ? 1 : 0);
   main.innerHTML = `<div class="head"><div><h1>Mon espace</h1><p>Vos tâches de sécurité : ${done} sur ${total} terminées.</p></div></div>
     <div class="bar ok" style="margin-bottom:18px;height:10px"><i style="width:${(done / total) * 100}%"></i></div>
+    ${reviews.length ? `<div class="card" style="margin-bottom:16px" id="reviews"><div class="card-h"><h3>${icon("key")}Revue des accès · ${esc(reviews[0].title)}</h3>
+        <span class="muted small">${reviews.length} compte${reviews.length > 1 ? "s" : ""} à revoir${reviews[0].due_date ? ` avant le ${date(reviews[0].due_date)}` : ""}</span><a class="more" href="#/revues-acces/${reviews[0].review_id}">Tout voir</a></div>
+      <div class="table-wrap"><table class="t"><tbody>${reviews.map((i) => `<tr><td class="title"><b>${esc(i.name || i.upn)}</b><span class="small muted">${esc(i.upn || "")}${i.enabled ? "" : " · compte désactivé"}</span></td>
+        <td>${i.admin_roles.map((r) => `<span class="tag">${esc(r)}</span>`).join("")}</td><td>${i.mfa == null ? "" : i.mfa ? '<span class="pill ok">MFA</span>' : '<span class="pill bad">Sans MFA</span>'}</td>
+        <td style="text-align:right">${decisionButtons(i)}</td></tr>`).join("")}</tbody></table></div></div>` : ""}
     <div class="grid g2">
       <div class="card"><div class="card-h"><h3>Politiques à accepter</h3></div><div class="card-b" style="padding:6px 6px 10px">
         ${t.policies.length ? t.policies.map((p) => `<a class="task ${p.accepted ? "done" : ""}" href="#/politiques/${p.id}" style="color:inherit;text-decoration:none">
@@ -31,6 +38,7 @@ export async function render(main, ctx) {
       <form class="form" id="pw"><div class="field"><label>Mot de passe actuel</label><input type="password" name="current" autocomplete="current-password" required></div>
       <div class="field"><label>Nouveau mot de passe (12 caractères minimum)</label><input type="password" name="password" minlength="12" autocomplete="new-password" required></div>
       <div class="err" id="err"></div><div><button class="btn primary">Mettre à jour</button></div></form></div></div>`;
+  if (reviews.length) wireDecisions(document.getElementById("reviews"), () => ctx.refresh());
   document.getElementById("copy").onclick = async () => { await navigator.clipboard.writeText(document.getElementById("cmd").textContent); toast("Commande copiée"); };
   document.getElementById("pw").onsubmit = async (e) => {
     e.preventDefault();

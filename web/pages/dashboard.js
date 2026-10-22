@@ -10,6 +10,7 @@ export async function render(main) {
   const prio = [
     ...d.tests.failing.map((t) => ({ cls: "bad", ic: "alert", title: t.title, sub: t.source === "agent" ? "Test sur les postes · agent Windows" : t.source === "m365" ? "Test Microsoft 365" : "Test du programme", href: "#/tests", cta: "Corriger" })),
     ...(d.incidents?.to_declare ? [{ cls: "bad", ic: "siren", title: `${d.incidents.to_declare} incident${d.incidents.to_declare > 1 ? "s" : ""} à déclarer à la DGSSI`, sub: "Loi 05-20 · déclaration au maCERT", href: "#/incidents", cta: "Ouvrir" }] : []),
+    ...(d.access_reviews?.open ? [{ cls: d.access_reviews.overdue ? "bad" : "warn", ic: "key", title: `Revue des accès en cours : ${d.access_reviews.pending} compte${d.access_reviews.pending > 1 ? "s" : ""} à revoir`, sub: d.access_reviews.overdue ? "Échéance dépassée" : "Mesure IAM-05 · ISO 27001 A.5.18", href: "#/revues-acces", cta: "Ouvrir" }] : []),
     ...d.overdue.map((o) => ({ cls: "warn", ic: "clock", title: `${o.code} · ${o.title}`, sub: `Échéance dépassée le ${new Date(o.due_date).toLocaleDateString("fr-FR")}`, href: `#/mesures/${o.id}`, cta: "Ouvrir" })),
   ];
 
