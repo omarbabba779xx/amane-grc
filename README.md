@@ -1,5 +1,7 @@
 # Amane GRC
 
+[![CI](https://github.com/omarbabba779xx/amane-grc/actions/workflows/ci.yml/badge.svg)](https://github.com/omarbabba779xx/amane-grc/actions/workflows/ci.yml)
+
 **Plateforme de conformité pour les PME marocaines** : ISO 27001:2022, loi 09-08 (CNDP) et DNSSI / loi 05-20, plus NIST CSF 2.0 et COBIT 2019 en option, dans une seule application web : mesures unifiées, tests automatisés sur les postes Windows et Microsoft 365, politiques prêtes à l'emploi, analyse de risques EBIOS RM, registre des incidents avec déclaration à la DGSSI, alertes par e-mail et Trust Center public.
 
 > « Amane » (أمان) signifie sécurité, confiance.
@@ -157,6 +159,14 @@ Dans **Paramètres › Alertes par e-mail**, renseignez votre serveur SMTP (Micr
 
 **Risques et tiers › Analyse EBIOS RM** suit les cinq ateliers de la méthode de l'ANSSI. Les échelles EBIOS (gravité et vraisemblance de 1 à 4) sont converties sur l'échelle du registre (1 à 5) lorsqu'un scénario opérationnel est envoyé au registre des risques ; un nouvel envoi met à jour le même risque.
 
+## Tests
+
+```bash
+npm test
+```
+
+La suite démarre une instance Amane neuve par fichier (base vide dans un dossier temporaire, port aléatoire) et vérifie de bout en bout : authentification et rôles, contenu réglementaire et couverture des exigences, preuves, politiques, registres et exports, agent Windows, incidents et DGSSI, Trust Center (rien de sensible n’est publié), EBIOS RM, intégration Microsoft 365 (contre le Graph simulé, avec et sans rapport P1/P2), alertes e-mail (contre un serveur SMTP de test) et application web (syntaxe des modules, absence de script en ligne). Aucune dépendance de test : `node:test`. La CI GitHub l’exécute sous Linux et Windows à chaque push, et vérifie la syntaxe de l’agent PowerShell.
+
 ## Architecture
 
 | Dossier | Rôle |
@@ -175,6 +185,7 @@ Dans **Paramètres › Alertes par e-mail**, renseignez votre serveur SMTP (Micr
 | `web/fonts/` | Polices Geist et Geist Mono (licence SIL OFL, `OFL.txt`) |
 | `agent/amane-agent.ps1` | Agent Windows |
 | `scripts/demo.js` | Base de démonstration |
+| `tests/` | Tests de bout en bout (`node:test`) |
 | `scripts/mock-graph.js` | Microsoft Graph simulé pour tester l'intégration Microsoft 365 |
 
 ## Sécurité de l'application

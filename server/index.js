@@ -424,7 +424,7 @@ app.delete("/api/integrations/m365", admin, (req, res) => {
   engine.runTests();
   res.json({ ok: true });
 });
-setInterval(() => { if (m365.config()?.status === "ok") m365.sync().then(() => engine.runTests()).catch(() => engine.runTests()); }, 6 * 3600e3);
+setInterval(() => { if (m365.config()?.status === "ok") m365.sync().then(() => engine.runTests()).catch(() => engine.runTests()); }, 6 * 3600e3).unref();
 
 /* ------------------------------------------------------------ incidents (loi 05-20: declaration to the DGSSI) */
 const SEVERITY = ["faible", "moyenne", "elevee", "critique"], INC_STATUS = ["ouvert", "en_cours", "clos"];
@@ -465,8 +465,8 @@ app.post("/api/settings/mail/reminders", admin, (req, res) => {
   res.json({ ok: true, sent: mailer.weeklyReminders() });
 });
 engine.events.on("failing", (list) => mailer.testsFailed(list));
-setInterval(() => mailer.tick(), 3600e3);
-setTimeout(() => mailer.tick(), 30e3);
+setInterval(() => mailer.tick(), 3600e3).unref();
+setTimeout(() => mailer.tick(), 30e3).unref();
 
 /* ------------------------------------------------------------ Trust Center */
 const trust = require("./trust");
@@ -577,6 +577,8 @@ app.get(/^\/(?!api\/|agent\/).*/, (req, res) => res.sendFile(path.join(__dirname
 app.use((err, req, res, _next) => { console.error(err); res.status(500).json({ error: "Erreur interne du serveur" }); });
 
 engine.runTests();
-setInterval(() => engine.runTests(), 15 * 60e3); // keep time-based tests (reviews, stale agents) fresh
+setInterval(() => engine.runTests(), 15 * 60e3).unref(); // keep time-based tests (reviews, stale agents) fresh
 
-app.listen(PORT, HOST, () => console.log(`Amane GRC · http://${HOST === "0.0.0.0" ? "localhost" : HOST}:${PORT}`));
+// started directly (npm start), or imported by the automated tests
+if (require.main === module) app.listen(PORT, HOST, () => console.log(`Amane GRC · http://${HOST === "0.0.0.0" ? "localhost" : HOST}:${PORT}`));
+module.exports = app;
